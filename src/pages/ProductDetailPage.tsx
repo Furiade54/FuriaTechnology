@@ -232,7 +232,7 @@ const ProductDetailPage: React.FC = () => {
           >
             <img 
               alt={`${product.name} - View ${currentImageIndex + 1}`} 
-              className="w-full h-full object-cover rounded-2xl shadow-sm select-none pointer-events-none" 
+              className="w-full h-full object-contain rounded-2xl shadow-sm select-none pointer-events-none" 
               src={displayImages[currentImageIndex]} 
             />
             
