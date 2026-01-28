@@ -75,7 +75,8 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
   useEffect(() => {
     if (!user || !notificationsEnabled) return;
 
-    // Subscribe to changes in the 'orders' table for the current user
+    // Subscribe to changes in the 'orders' table
+    // We filter client-side to avoid potential case-sensitivity issues with the 'userId' column name in the realtime filter string
     const subscription = supabase
       .channel('public:orders')
       .on(
@@ -84,14 +85,24 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
           event: 'UPDATE',
           schema: 'public',
           table: 'orders',
-          filter: `userId=eq.${user.id}`,
         },
         (payload: any) => {
-          const newStatus = payload.new.status;
-          const oldStatus = payload.old.status;
+          console.log('Realtime Order Update:', payload);
+          
+          // Filter for current user's orders
+          if (payload.new.userId !== user.id) return;
 
+          const newStatus = payload.new.status;
+          const oldStatus = payload.old?.status; // Optional chaining in case old is missing
+          const newNotes = payload.new.notes;
+          const oldNotes = payload.old?.notes;
+
+          let notificationSent = false;
+
+          // Check for status changes
           if (newStatus !== oldStatus) {
             setUnreadCount((prev) => prev + 1);
+            notificationSent = true;
             
             if (Notification.permission === 'granted') {
                const statusMap: Record<string, string> = {
@@ -112,6 +123,27 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
                 icon: '/icon.svg'
               });
             }
+          }
+
+          // Check for note changes (only if it wasn't already a status change notification, or maybe both?)
+          // Let's allow both, or if status changed, maybe the note explains why.
+          // But if ONLY note changed, we definitely need to notify.
+          if (newNotes !== oldNotes && newNotes && newNotes.trim() !== '') {
+             // Avoid double counting if we want, but "unreadCount" implies "unread updates". 
+             // If status AND note changed, user has 2 things to see? Or just 1 update event?
+             // Usually 1 badge for "something happened to this order".
+             // But for now, let's increment if it wasn't already incremented, OR increment again.
+             // Let's just increment for every distinct piece of info.
+             if (!notificationSent) {
+                setUnreadCount((prev) => prev + 1);
+             }
+
+             if (Notification.permission === 'granted') {
+                new Notification('Nueva Nota en Pedido', {
+                    body: 'El vendedor ha agregado una nota a tu pedido.',
+                    icon: '/icon.svg'
+                });
+             }
           }
         }
       )

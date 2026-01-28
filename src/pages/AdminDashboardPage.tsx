@@ -1413,12 +1413,21 @@ const AdminDashboardPage: React.FC = () => {
                                     className="flex-1 bg-slate-50 dark:bg-zinc-800 border-none rounded-lg text-xs py-2 px-3 text-slate-700 dark:text-slate-300 focus:ring-2 focus:ring-indigo-500"
                                   />
                                   <button
-                                    onClick={() => {
+                                    onClick={async () => {
                                       try {
-                                        queries.updateOrderNotes(order.id, orderNotesDraft[order.id] ?? '');
-                                        refreshData();
+                                        const noteToSave = orderNotesDraft[order.id] ?? order.notes ?? '';
+                                        await queries.updateOrderNotes(order.id, noteToSave);
+                                        await refreshData();
+                                        setOrderNotesDraft(prev => {
+                                          const next = { ...prev };
+                                          delete next[order.id];
+                                          return next;
+                                        });
+                                        // Optional: Feedback to admin
+                                        // alert("Nota guardada correctamente"); 
                                       } catch (error) {
                                         console.error("Error updating order notes:", error);
+                                        alert("Error al guardar la nota");
                                       }
                                     }}
                                     className="flex-none px-3 py-2 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition-colors"
