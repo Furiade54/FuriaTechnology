@@ -4,6 +4,7 @@ import { useDatabase } from '../context/DatabaseContext';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { useStoreSettings } from '../context/StoreSettingsContext';
+import { useNotification } from '../context/NotificationContext';
 import { formatCurrency } from '../utils/currency';
 import { PROFILE_SECTIONS } from '../constants/ui';
 import type { User, Order, PaymentMethod } from '../types';
@@ -13,6 +14,7 @@ export default function ProfilePage() {
   const { clearCart, restoreCart } = useCart();
   const { wishlistCount } = useWishlist();
   const { getSetting } = useStoreSettings();
+  const { notificationsEnabled, setNotificationsEnabled, requestPermission } = useNotification();
   const navigate = useNavigate();
   const location = useLocation();
   const [orderToDelete, setOrderToDelete] = useState<string | null>(null);
@@ -75,13 +77,6 @@ export default function ProfilePage() {
       localStorage.setItem('theme', 'light');
     }
   }, [isDarkMode]);
-
-  const [notificationsEnabled, setNotificationsEnabled] = useState(() => {
-    if (typeof window !== 'undefined') {
-        return localStorage.getItem('notifications') !== 'false';
-    }
-    return true;
-  });
 
   // Update local state when user is loaded
   useEffect(() => {
@@ -323,33 +318,9 @@ export default function ProfilePage() {
                             <button 
                                 onClick={async () => {
                                     if (!notificationsEnabled) {
-                                        // Request permission if turning on
-                                        if (!('Notification' in window)) {
-                                            alert('Tu navegador no soporta notificaciones.');
-                                            return;
-                                        }
-                                        
-                                        let permission = Notification.permission;
-                                        if (permission === 'default') {
-                                            permission = await Notification.requestPermission();
-                                        }
-                                        
-                                        if (permission === 'granted') {
-                                            setNotificationsEnabled(true);
-                                            localStorage.setItem('notifications', 'true');
-                                            new Notification('Notificaciones Activadas', {
-                                                body: 'Recibirás alertas sobre el estado de tus pedidos.',
-                                                icon: '/pwa-192x192.png'
-                                            });
-                                        } else {
-                                            alert('Debes permitir las notificaciones en tu navegador para activar esta función.');
-                                            setNotificationsEnabled(false);
-                                            localStorage.setItem('notifications', 'false');
-                                        }
+                                        await requestPermission();
                                     } else {
-                                        // Turning off
                                         setNotificationsEnabled(false);
-                                        localStorage.setItem('notifications', 'false');
                                     }
                                 }}
                                 className={`w-12 h-6 rounded-full transition-colors relative ${notificationsEnabled ? 'bg-primary' : 'bg-slate-200 dark:bg-zinc-700'}`}

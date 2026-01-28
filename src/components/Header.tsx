@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
 import { useDatabase } from '../context/DatabaseContext';
-import { Link } from 'react-router-dom';
+import { useNotification } from '../context/NotificationContext';
+import { Link, useNavigate } from 'react-router-dom';
 import type { User } from '../types';
 
 interface HeaderProps {
@@ -15,6 +16,8 @@ const Header: React.FC<HeaderProps> = ({
 }) => {
   const { totalItems } = useCart();
   const { queries } = useDatabase();
+  const { unreadCount, clearUnreadCount } = useNotification();
+  const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
@@ -28,6 +31,15 @@ const Header: React.FC<HeaderProps> = ({
     };
     fetchUser();
   }, [queries]);
+
+  const handleNotificationClick = () => {
+    clearUnreadCount();
+    if (user) {
+        navigate('/profile');
+    } else {
+        navigate('/login');
+    }
+  };
 
   const displayName = userName || user?.name || "Guest";
   const displayAvatar = userAvatar || user?.avatar;
@@ -45,7 +57,7 @@ const Header: React.FC<HeaderProps> = ({
               />
             ) : (
               <div className="w-full h-full bg-slate-200 dark:bg-zinc-800 flex items-center justify-center">
-                 <span className="text-lg font-bold text-slate-500 dark:text-slate-400 uppercase">
+                <span className="text-lg font-bold text-slate-500 dark:text-slate-400 uppercase">
                   {displayName.charAt(0)}
                 </span>
               </div>
@@ -53,8 +65,16 @@ const Header: React.FC<HeaderProps> = ({
           </Link>
         </div>
         <div className="flex w-auto items-center justify-end gap-2">
-          <button className="flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-12 bg-transparent text-slate-900 dark:text-slate-100 gap-2 text-base font-bold leading-normal tracking-[0.015em] min-w-0 p-2">
+          <button 
+            onClick={handleNotificationClick}
+            className="flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-12 bg-transparent text-slate-900 dark:text-slate-100 gap-2 text-base font-bold leading-normal tracking-[0.015em] min-w-0 p-2 relative"
+          >
             <span className="material-symbols-outlined text-slate-900 dark:text-slate-100">notifications</span>
+            {unreadCount > 0 && (
+              <span className="absolute top-2 right-2 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] text-white">
+                {unreadCount}
+              </span>
+            )}
           </button>
           <Link to="/cart" className="flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-12 bg-transparent text-slate-900 dark:text-slate-100 gap-2 text-base font-bold leading-normal tracking-[0.015em] min-w-0 p-2 relative">
             <span className="material-symbols-outlined text-slate-900 dark:text-slate-100">shopping_cart</span>
