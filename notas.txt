@@ -1,0 +1,14 @@
+Publishable key "sb_publishable_M4bB7TvixclZL57OATnvpA_ede_AZtu" 
+Secret keys: "sb_secret_jAyWObZL5-H2caNxp5NNhw_IRLxzC6E" , 
+https://supabase.com/dashboard/project/ijcdfdabpbdkzdlikutf"
+
+
+yJvB99J7ykaXwkN0
+
+
+ingresarás con las siguientes credenciales:
+
+usuario:
+POCAMPO
+clave:
+orion2026

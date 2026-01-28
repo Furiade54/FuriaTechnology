@@ -1,0 +1,632 @@
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useDatabase } from '../context/DatabaseContext';
+import { useCart } from '../context/CartContext';
+import { useWishlist } from '../context/WishlistContext';
+import { useStoreSettings } from '../context/StoreSettingsContext';
+import { formatCurrency } from '../utils/currency';
+import { PROFILE_SECTIONS } from '../constants/ui';
+import type { User, Order, PaymentMethod } from '../types';
+
+export default function ProfilePage() {
+  const { queries } = useDatabase();
+  const { clearCart, restoreCart } = useCart();
+  const { wishlistCount } = useWishlist();
+  const { getSetting } = useStoreSettings();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [orderToDelete, setOrderToDelete] = useState<string | null>(null);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  
+  const [user, setUser] = useState<User | null>(null);
+  const profileSections = PROFILE_SECTIONS;
+  const [showPersonalForm, setShowPersonalForm] = useState(false);
+  const [showOrders, setShowOrders] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [showPaymentMethods, setShowPaymentMethods] = useState(false);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
+  const [activeOrdersCount, setActiveOrdersCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const currencyLocale = getSetting('currency_locale', 'es-CO');
+  const currencyCode = getSetting('currency_code', 'COP');
+  
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return document.documentElement.classList.contains('dark') || 
+             localStorage.getItem('theme') === 'dark' ||
+             (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const currentUser = await queries.getCurrentUser();
+        setUser(currentUser);
+        
+        if (currentUser) {
+          const userOrders = await queries.getOrdersByUser(currentUser.id);
+          setOrders(userOrders);
+          const active = userOrders.filter(o => o.status === 'pending').length;
+          setActiveOrdersCount(active);
+        }
+        
+        const methods = await queries.getPaymentMethods();
+        setPaymentMethods(methods);
+
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchUserData();
+  }, [queries]);
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [isDarkMode]);
+
+  const [notificationsEnabled, setNotificationsEnabled] = useState(() => {
+    if (typeof window !== 'undefined') {
+        return localStorage.getItem('notifications') !== 'false';
+    }
+    return true;
+  });
+
+  // Update local state when user is loaded
+  useEffect(() => {
+    if (user) {
+      setName(user.name || '');
+      setPhone(user.phone || '');
+      setCity(user.city || '');
+    }
+  }, [user]);
+
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [city, setCity] = useState('');
+
+  useEffect(() => {
+    if (user) {
+      // Logic for navigation state
+      if (location.state?.openOrders) {
+        setShowOrders(true);
+        setShowPersonalForm(false);
+        // Orders are already fetched in the main useEffect
+        window.history.replaceState({}, document.title);
+      } else if (location.state?.openWishlist) {
+        navigate('/profile/wishlist');
+      }
+    } else if (!isLoading) {
+      navigate('/login');
+    }
+  }, [location.state, user, isLoading, navigate]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-slate-50 dark:bg-zinc-950">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    // This will handle the redirect in useEffect, but return null/loader here to prevent flash
+    return null;
+  }
+
+  return (
+    <div className="flex flex-col min-h-screen bg-background-light dark:bg-background-dark font-sans pb-24">
+      <div className="sticky top-0 z-10 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-sm border-b border-slate-200 dark:border-zinc-800">
+        <div className="flex items-center p-4">
+          <h1 className="text-lg font-bold flex-1 text-center text-slate-900 dark:text-white">Profile</h1>
+        </div>
+      </div>
+
+      <div className="p-4 space-y-6">
+        <div className="flex flex-col items-center gap-4 py-6">
+          <div className="w-24 h-24 rounded-full bg-slate-200 dark:bg-zinc-800 overflow-hidden border-4 border-white dark:border-zinc-700 shadow-sm flex items-center justify-center">
+            {user.avatar ? (
+              <img 
+                src={user.avatar}
+                alt="User Avatar" 
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <span className="text-4xl font-bold text-slate-400 dark:text-slate-500 uppercase">
+                {user.name.charAt(0)}
+              </span>
+            )}
+          </div>
+          <div className="text-center">
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white">{user.name}</h2>
+            <p className="text-slate-500 dark:text-slate-400">{user.email}</p>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          {profileSections.map((section) => {
+            const isPersonalInfo = section.route === '/profile/info';
+            const isOrders = section.route === '/profile/orders';
+            const isWishlist = section.route === '/profile/wishlist';
+            const isPaymentMethods = section.route === '/profile/payment-methods';
+            const isSettings = section.route === '/settings';
+
+            const showFormHere = isPersonalInfo && showPersonalForm;
+            const showOrdersHere = isOrders && showOrders;
+            const showPaymentMethodsHere = isPaymentMethods && showPaymentMethods;
+            const showSettingsHere = isSettings && showSettings;
+
+            return (
+              <div
+                key={section.id}
+                className={(showFormHere || showOrdersHere || showSettingsHere || showPaymentMethodsHere) ? 'space-y-3' : undefined}
+              >
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (isPersonalInfo) {
+                      setShowPersonalForm(!showPersonalForm);
+                      setShowOrders(false);
+                      setShowSettings(false);
+                      setShowPaymentMethods(false);
+                    } else if (isOrders) {
+                      setShowOrders(!showOrders);
+                      setShowPersonalForm(false);
+                      setShowSettings(false);
+                      setShowPaymentMethods(false);
+                      // Refresh orders
+                      if (user) {
+                        queries.getOrdersByUser(user.id).then(setOrders);
+                      }
+                    } else if (isWishlist) {
+                      navigate('/profile/wishlist');
+                    } else if (isPaymentMethods) {
+                      setShowPaymentMethods(!showPaymentMethods);
+                      setShowPersonalForm(false);
+                      setShowOrders(false);
+                      setShowSettings(false);
+                    } else if (isSettings) {
+                        setShowSettings(!showSettings);
+                        setShowPersonalForm(false);
+                        setShowOrders(false);
+                        setShowPaymentMethods(false);
+                    }
+                  }}
+                  className="w-full flex items-center gap-4 p-4 bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-slate-100 dark:border-zinc-800 hover:bg-slate-50 dark:hover:bg-zinc-800/80 transition-colors"
+                >
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                    <span className="material-symbols-outlined">{section.icon}</span>
+                  </div>
+                  <div className="flex-1 text-left">
+                    <h3 className="font-semibold text-slate-900 dark:text-white">{section.title}</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">{section.subtitle}</p>
+                  </div>
+                  
+                  {isOrders && activeOrdersCount > 0 && (
+                    <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full min-w-[20px] text-center">
+                      {activeOrdersCount}
+                    </span>
+                  )}
+
+                  {isWishlist && wishlistCount > 0 && (
+                    <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full min-w-[20px] text-center">
+                      {wishlistCount}
+                    </span>
+                  )}
+
+                  <span className={`material-symbols-outlined text-slate-400 transition-transform duration-300 ${
+                    showFormHere || showOrdersHere || showSettingsHere || showPaymentMethodsHere ? 'rotate-90' : ''
+                  }`}>
+                    chevron_right
+                  </span>
+                </button>
+
+                {showPaymentMethodsHere && (
+                  <div className="p-4 bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-slate-100 dark:border-zinc-800 space-y-4">
+                    <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Cuentas para Consignar</h3>
+                    <p className="text-xs text-slate-500 mb-4">Utiliza estas cuentas para realizar pagos directos al vendedor.</p>
+                    
+                    <div className="space-y-3">
+                      {paymentMethods.length > 0 ? (
+                        paymentMethods.map((method) => (
+                          <div key={method.id} className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-zinc-800/50 rounded-xl border border-slate-100 dark:border-zinc-800">
+                            <div className="w-10 h-10 rounded-full bg-white dark:bg-zinc-700 flex items-center justify-center shrink-0 shadow-sm">
+                              <span className={`material-symbols-outlined ${
+                                method.bankName.toLowerCase().includes('bancolombia') ? 'text-yellow-500' :
+                                method.bankName.toLowerCase().includes('davivienda') ? 'text-red-600' :
+                                method.bankName.toLowerCase().includes('nequi') ? 'text-purple-600' :
+                                method.bankName.toLowerCase().includes('breb') ? 'text-blue-600' :
+                                'text-slate-600 dark:text-slate-300'
+                              }`}>
+                                {method.bankName.toLowerCase().includes('bancolombia') ? 'account_balance' : 
+                                 method.bankName.toLowerCase().includes('nequi') ? 'smartphone' :
+                                 method.bankName.toLowerCase().includes('davivienda') ? 'home_work' : 
+                                 method.bankName.toLowerCase().includes('breb') ? 'key' : 'credit_card'}
+                              </span>
+                            </div>
+                            <div className="flex-1">
+                              <p className="font-semibold text-slate-900 dark:text-white text-sm">{method.bankName} {method.accountType ? `- ${method.accountType}` : ''}</p>
+                              <div className="flex items-center gap-2">
+                                <code className="text-xs bg-white dark:bg-zinc-900 px-1.5 py-0.5 rounded border border-slate-200 dark:border-zinc-700 font-mono text-slate-600 dark:text-slate-300">
+                                  {method.accountNumber}
+                                </code>
+                                <button 
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(method.accountNumber);
+                                    // Could add a toast here
+                                  }}
+                                  className="text-primary hover:text-primary-dark"
+                                  title="Copiar"
+                                >
+                                  <span className="material-symbols-outlined text-[16px]">content_copy</span>
+                                </button>
+                              </div>
+                              {method.accountHolder && (
+                                <p className="text-xs text-slate-500 mt-1">Titular: {method.accountHolder}</p>
+                              )}
+                              {method.instructions && (
+                                <p className="text-xs text-slate-400 mt-1 italic">{method.instructions}</p>
+                              )}
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm text-slate-500 text-center py-4">No hay métodos de pago disponibles.</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {showSettingsHere && (
+                    <div className="p-4 bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-slate-100 dark:border-zinc-800 space-y-4">
+                        <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Preferencias</h3>
+                        
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 rounded-full bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-300">
+                                    <span className="material-symbols-outlined text-[20px]">{isDarkMode ? 'dark_mode' : 'light_mode'}</span>
+                                </div>
+                                <div>
+                                    <p className="text-sm font-medium text-slate-900 dark:text-white">Modo Oscuro</p>
+                                    <p className="text-xs text-slate-500">Cambiar apariencia</p>
+                                </div>
+                            </div>
+                            <button 
+                                onClick={() => setIsDarkMode(!isDarkMode)}
+                                className={`w-12 h-6 rounded-full transition-colors relative ${isDarkMode ? 'bg-primary' : 'bg-slate-200 dark:bg-zinc-700'}`}
+                            >
+                                <span className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${isDarkMode ? 'left-7' : 'left-1'}`} />
+                            </button>
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 rounded-full bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-300">
+                                    <span className="material-symbols-outlined text-[20px]">notifications</span>
+                                </div>
+                                <div>
+                                    <p className="text-sm font-medium text-slate-900 dark:text-white">Notificaciones</p>
+                                    <p className="text-xs text-slate-500">Alertas de pedidos</p>
+                                </div>
+                            </div>
+                            <button 
+                                onClick={async () => {
+                                    if (!notificationsEnabled) {
+                                        // Request permission if turning on
+                                        if (!('Notification' in window)) {
+                                            alert('Tu navegador no soporta notificaciones.');
+                                            return;
+                                        }
+                                        
+                                        let permission = Notification.permission;
+                                        if (permission === 'default') {
+                                            permission = await Notification.requestPermission();
+                                        }
+                                        
+                                        if (permission === 'granted') {
+                                            setNotificationsEnabled(true);
+                                            localStorage.setItem('notifications', 'true');
+                                            new Notification('Notificaciones Activadas', {
+                                                body: 'Recibirás alertas sobre el estado de tus pedidos.',
+                                                icon: '/pwa-192x192.png'
+                                            });
+                                        } else {
+                                            alert('Debes permitir las notificaciones en tu navegador para activar esta función.');
+                                            setNotificationsEnabled(false);
+                                            localStorage.setItem('notifications', 'false');
+                                        }
+                                    } else {
+                                        // Turning off
+                                        setNotificationsEnabled(false);
+                                        localStorage.setItem('notifications', 'false');
+                                    }
+                                }}
+                                className={`w-12 h-6 rounded-full transition-colors relative ${notificationsEnabled ? 'bg-primary' : 'bg-slate-200 dark:bg-zinc-700'}`}
+                            >
+                                <span className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${notificationsEnabled ? 'left-7' : 'left-1'}`} />
+                            </button>
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                             <div className="flex items-center gap-3">
+                                <div className="p-2 rounded-full bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-300">
+                                    <span className="material-symbols-outlined text-[20px]">language</span>
+                                </div>
+                                <div>
+                                    <p className="text-sm font-medium text-slate-900 dark:text-white">Idioma</p>
+                                    <p className="text-xs text-slate-500">Español</p>
+                                </div>
+                            </div>
+                            <span className="text-xs text-slate-500 font-medium">ES</span>
+                        </div>
+                    </div>
+                )}
+
+                {showOrdersHere && (
+                  <div className="p-4 bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-slate-100 dark:border-zinc-800 space-y-4">
+                    <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Mis Pedidos ({orders.length})</h3>
+                    {orders.length === 0 ? (
+                        <p className="text-sm text-slate-500 text-center py-4">No tienes pedidos aún.</p>
+                    ) : (
+                        <div className="space-y-4">
+                            {orders.map(order => (
+                                <div key={order.id} className="border-b border-slate-100 dark:border-zinc-800 last:border-0 pb-4 last:pb-0">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div>
+                                            <p className="text-xs font-bold text-slate-900 dark:text-white">Pedido #{order.id.slice(-8).toUpperCase()}</p>
+                                            <p className="text-xs text-slate-500">{new Date(order.createdAt).toLocaleDateString()} {new Date(order.createdAt).toLocaleTimeString()}</p>
+                                        </div>
+                                        <span className={`text-xs px-2 py-1 rounded-full ${
+                                          ({
+                                            pending: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+                                            received: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+                                            processing: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400',
+                                            on_hold: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+                                            shipped: 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400',
+                                            delivered: 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400',
+                                            completed: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+                                            cancelled: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+                                            issue: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400'
+                                          } as Record<string, string>)[order.status]
+                                        }`}>
+                                          {({
+                                            pending: 'Pendiente',
+                                            received: 'Recibido',
+                                            processing: 'Procesando',
+                                            on_hold: 'En espera',
+                                            shipped: 'Enviado',
+                                            delivered: 'Entregado',
+                                            completed: 'Completado',
+                                            cancelled: 'Cancelado',
+                                            issue: 'Con incidencia'
+                                          } as Record<string, string>)[order.status]}
+                                        </span>
+                                    </div>
+                                    {order.notes && (
+                                      <div className="mt-2 p-2 rounded-lg bg-slate-50 dark:bg-zinc-800 text-xs text-slate-700 dark:text-slate-300 flex items-start gap-2">
+                                        <span className="material-symbols-outlined text-slate-500 dark:text-slate-400 text-sm">info</span>
+                                        <p className="flex-1">{order.notes}</p>
+                                      </div>
+                                    )}
+                                    <div className="space-y-2">
+                                        {order.items?.map(item => (
+                                            <div key={item.id} className="flex gap-2 text-xs">
+                                                <img src={item.productImage} className="w-8 h-8 rounded bg-slate-100 object-cover" alt="" />
+                                                <div className="flex-1">
+                                                    <p className="text-slate-900 dark:text-slate-200 line-clamp-1">{item.productName}</p>
+                                                    <p className="text-slate-500">{item.quantity} x ${item.price}</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="mt-2 flex justify-between items-center">
+                                        <div className="flex gap-2">
+                                            <button
+                                              onClick={() => {
+                                                try {
+                                                  const cartItems = order.items?.map(i => ({ id: i.productId, quantity: i.quantity })) || [];
+                                                  if (cartItems.length > 0) {
+                                                    restoreCart(cartItems);
+                                                    queries.deleteOrder(order.id);
+                                                    navigate('/cart');
+                                                  } else {
+                                                    alert('No se pudieron recuperar los items del pedido');
+                                                  }
+                                                } catch (e) {
+                                                  alert('Error al procesar la solicitud');
+                                                }
+                                              }}
+                                              className="text-xs text-blue-600 hover:text-blue-800 font-medium px-2 py-1 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                                            >
+                                              Editar Pedido
+                                            </button>
+                                            <button
+                                              onClick={() => setOrderToDelete(order.id)}
+                                              className="text-xs text-red-500 hover:text-red-700 font-medium px-2 py-1 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                                            >
+                                              Eliminar Pedido
+                                            </button>
+                                        </div>
+                                        <p className="text-sm font-bold text-slate-900 dark:text-white">Total: {formatCurrency(order.total, currencyLocale, currencyCode)}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                  </div>
+                )}
+
+                {showFormHere && (
+                  <div className="p-4 bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-slate-100 dark:border-zinc-800 space-y-4">
+                    <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Personal Information</h3>
+                    <form
+                      className="space-y-4"
+                      onSubmit={(event) => {
+                        event.preventDefault();
+                        if (user) {
+                          const updatedUser = { ...user, name, phone, city };
+                          queries.updateUser(updatedUser);
+                          setUser(updatedUser);
+                          setShowPersonalForm(false);
+                        }
+                      }}
+                    >
+                      <div className="space-y-1">
+                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-300">
+                          Name
+                        </label>
+                        <input
+                          value={name}
+                          onChange={(event) => setName(event.target.value)}
+                          className="w-full rounded-xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-900 px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
+                          placeholder="Your name"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-300">
+                          Phone
+                        </label>
+                        <input
+                          value={phone}
+                          onChange={(event) => setPhone(event.target.value)}
+                          className="w-full rounded-xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-900 px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
+                          placeholder="+57 300 000 0000"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-300">
+                          City
+                        </label>
+                        <input
+                          value={city}
+                          onChange={(event) => setCity(event.target.value)}
+                          className="w-full rounded-xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-900 px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
+                          placeholder="Your city"
+                        />
+                      </div>
+
+                      <div className="flex gap-2 pt-2">
+                        <button
+                          type="button"
+                          onClick={() => setShowPersonalForm(false)}
+                          className="flex-1 h-10 rounded-xl border border-slate-200 dark:border-zinc-700 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-zinc-800/80 transition-colors"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          className="flex-1 h-10 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-colors"
+                        >
+                          Save
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        <button 
+          onClick={() => setShowLogoutModal(true)}
+          className="w-full bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-bold py-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+        >
+          <span className="material-symbols-outlined">logout</span>
+          Cerrar Sesión
+        </button>
+      </div>
+      {/* Logout Confirmation Modal */}
+      {showLogoutModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-xl w-full max-w-sm p-6 space-y-4 animate-in zoom-in-95 duration-200">
+            <div className="text-center space-y-2">
+              <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mx-auto mb-4">
+                <span className="material-symbols-outlined text-red-600 dark:text-red-400 text-2xl">logout</span>
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">¿Cerrar Sesión?</h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                ¿Estás seguro de que quieres cerrar sesión? Tendrás que volver a ingresar tus datos para acceder a tu cuenta.
+              </p>
+            </div>
+            <div className="flex gap-3 pt-2">
+              <button
+                onClick={() => setShowLogoutModal(false)}
+                className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-zinc-700 text-slate-700 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors text-sm"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => {
+                  localStorage.removeItem('currentUserId');
+                  clearCart();
+                  navigate('/login');
+                }}
+                className="flex-1 px-4 py-2.5 rounded-xl bg-red-600 text-white font-medium hover:bg-red-700 transition-colors text-sm shadow-sm shadow-red-200 dark:shadow-none"
+              >
+                Cerrar Sesión
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {orderToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-xl w-full max-w-sm p-6 space-y-4 animate-in zoom-in-95 duration-200">
+            <div className="text-center space-y-2">
+              <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mx-auto mb-4">
+                <span className="material-symbols-outlined text-red-600 dark:text-red-400 text-2xl">warning</span>
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">¿Eliminar pedido?</h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                Esta acción no se puede deshacer. El pedido será eliminado permanentemente de tu historial.
+              </p>
+            </div>
+            <div className="flex gap-3 pt-2">
+              <button
+                onClick={() => setOrderToDelete(null)}
+                className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-zinc-700 text-slate-700 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors text-sm"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => {
+                  try {
+                    queries.deleteOrder(orderToDelete);
+                    setOrders(orders.filter(o => o.id !== orderToDelete));
+                    // Check if the deleted order was pending to update badge
+                    const deletedOrder = orders.find(o => o.id === orderToDelete);
+                    if (deletedOrder?.status === 'pending') {
+                      setActiveOrdersCount(prev => Math.max(0, prev - 1));
+                    }
+                    setOrderToDelete(null);
+                  } catch (e) {
+                    alert('Error al eliminar el pedido');
+                  }
+                }}
+                className="flex-1 px-4 py-2.5 rounded-xl bg-red-600 text-white font-medium hover:bg-red-700 transition-colors text-sm shadow-sm shadow-red-200 dark:shadow-none"
+              >
+                Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
