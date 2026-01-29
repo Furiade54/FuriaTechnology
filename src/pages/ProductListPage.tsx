@@ -16,6 +16,23 @@ const ProductListPage: React.FC = () => {
   const [sortBy, setSortBy] = React.useState<'default' | 'price-asc' | 'price-desc'>('default');
   const [isSearchVisible, setIsSearchVisible] = React.useState(!!initialSearchQuery);
   const [searchQuery, setSearchQuery] = React.useState(initialSearchQuery);
+  const filterMenuRef = React.useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (filterMenuRef.current && !filterMenuRef.current.contains(event.target as Node)) {
+        setIsFilterOpen(false);
+      }
+    }
+
+    if (isFilterOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isFilterOpen]);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -82,7 +99,7 @@ const ProductListPage: React.FC = () => {
             </h1>
           )}
 
-          <div className="flex shrink-0 items-center justify-end gap-1 relative">
+          <div className="flex shrink-0 items-center justify-end gap-1 relative" ref={filterMenuRef}>
             <button 
               onClick={() => {
                 if (isSearchVisible) {

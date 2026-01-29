@@ -18,6 +18,7 @@ export default function ProfilePage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [orderToDelete, setOrderToDelete] = useState<string | null>(null);
+  const [orderToEdit, setOrderToEdit] = useState<Order | null>(null);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   
   const [user, setUser] = useState<User | null>(null);
@@ -350,86 +351,14 @@ export default function ProfilePage() {
                     ) : (
                         <div className="space-y-4">
                             {orders.map(order => (
-                                <div key={order.id} className="border-b border-slate-100 dark:border-zinc-800 last:border-0 pb-4 last:pb-0">
-                                    <div className="flex justify-between items-start mb-2">
-                                        <div>
-                                            <p className="text-xs font-bold text-slate-900 dark:text-white">Pedido #{order.id.slice(-8).toUpperCase()}</p>
-                                            <p className="text-xs text-slate-500">{new Date(order.createdAt).toLocaleDateString()} {new Date(order.createdAt).toLocaleTimeString()}</p>
-                                        </div>
-                                        <span className={`text-xs px-2 py-1 rounded-full ${
-                                          ({
-                                            pending: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-                                            received: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-                                            processing: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400',
-                                            on_hold: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
-                                            shipped: 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400',
-                                            delivered: 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400',
-                                            completed: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-                                            cancelled: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-                                            issue: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400'
-                                          } as Record<string, string>)[order.status]
-                                        }`}>
-                                          {({
-                                            pending: 'Pendiente',
-                                            received: 'Recibido',
-                                            processing: 'Procesando',
-                                            on_hold: 'En espera',
-                                            shipped: 'Enviado',
-                                            delivered: 'Entregado',
-                                            completed: 'Completado',
-                                            cancelled: 'Cancelado',
-                                            issue: 'Con incidencia'
-                                          } as Record<string, string>)[order.status]}
-                                        </span>
-                                    </div>
-                                    {order.notes && (
-                                      <div className="mt-2 p-2 rounded-lg bg-slate-50 dark:bg-zinc-800 text-xs text-slate-700 dark:text-slate-300 flex items-start gap-2">
-                                        <span className="material-symbols-outlined text-slate-500 dark:text-slate-400 text-sm">info</span>
-                                        <p className="flex-1">{order.notes}</p>
-                                      </div>
-                                    )}
-                                    <div className="space-y-2">
-                                        {order.items?.map(item => (
-                                            <div key={item.id} className="flex gap-2 text-xs">
-                                                <img src={item.productImage} className="w-8 h-8 rounded bg-slate-100 object-cover" alt="" />
-                                                <div className="flex-1">
-                                                    <p className="text-slate-900 dark:text-slate-200 line-clamp-1">{item.productName}</p>
-                                                    <p className="text-slate-500">{item.quantity} x ${item.price}</p>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                    <div className="mt-2 flex justify-between items-center">
-                                        <div className="flex gap-2">
-                                            <button
-                                              onClick={() => {
-                                                try {
-                                                  const cartItems = order.items?.map(i => ({ id: i.productId, quantity: i.quantity })) || [];
-                                                  if (cartItems.length > 0) {
-                                                    restoreCart(cartItems);
-                                                    queries.deleteOrder(order.id);
-                                                    navigate('/cart');
-                                                  } else {
-                                                    alert('No se pudieron recuperar los items del pedido');
-                                                  }
-                                                } catch (e) {
-                                                  alert('Error al procesar la solicitud');
-                                                }
-                                              }}
-                                              className="text-xs text-blue-600 hover:text-blue-800 font-medium px-2 py-1 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
-                                            >
-                                              Editar Pedido
-                                            </button>
-                                            <button
-                                              onClick={() => setOrderToDelete(order.id)}
-                                              className="text-xs text-red-500 hover:text-red-700 font-medium px-2 py-1 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                                            >
-                                              Eliminar Pedido
-                                            </button>
-                                        </div>
-                                        <p className="text-sm font-bold text-slate-900 dark:text-white">Total: {formatCurrency(order.total, currencyLocale, currencyCode)}</p>
-                                    </div>
-                                </div>
+                                <OrderItem 
+                                    key={order.id}
+                                    order={order}
+                                    currencyLocale={currencyLocale}
+                                    currencyCode={currencyCode}
+                                    onRestore={(order) => setOrderToEdit(order)}
+                                    onDelete={(orderId) => setOrderToDelete(orderId)}
+                                />
                             ))}
                         </div>
                     )}
@@ -596,6 +525,177 @@ export default function ProfilePage() {
           </div>
         </div>
       )}
+
+      {/* Edit Confirmation Modal */}
+      {orderToEdit && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-xl w-full max-w-sm p-6 space-y-4 animate-in zoom-in-95 duration-200">
+            <div className="text-center space-y-2">
+              <div className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mx-auto mb-4">
+                <span className="material-symbols-outlined text-blue-600 dark:text-blue-400 text-2xl">edit_note</span>
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">¿Editar Pedido?</h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                Este proceso eliminará la orden actual y le permitirá realizar los cambios. 
+                <span className="block mt-2 font-medium text-slate-700 dark:text-slate-300">
+                  Debe volver a dar clic en el botón de WhatsApp para volver a montar el pedido con los cambios realizados.
+                </span>
+              </p>
+            </div>
+            <div className="flex gap-3 pt-2">
+              <button
+                onClick={() => setOrderToEdit(null)}
+                className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-zinc-700 text-slate-700 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors text-sm"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => {
+                  try {
+                    const cartItems = orderToEdit.items?.map(i => ({ id: i.productId, quantity: i.quantity })) || [];
+                    if (cartItems.length > 0) {
+                      restoreCart(cartItems);
+                      queries.deleteOrder(orderToEdit.id);
+                      setOrders(orders.filter(o => o.id !== orderToEdit.id));
+                      navigate('/cart');
+                    } else {
+                      alert('No se pudieron recuperar los items del pedido');
+                    }
+                  } catch (e) {
+                    alert('Error al procesar la solicitud');
+                  }
+                  setOrderToEdit(null);
+                }}
+                className="flex-1 px-4 py-2.5 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 transition-colors text-sm shadow-sm shadow-blue-200 dark:shadow-none"
+              >
+                Continuar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
+const OrderItem = ({ 
+  order, 
+  currencyLocale, 
+  currencyCode, 
+  onRestore, 
+  onDelete 
+}: { 
+  order: Order; 
+  currencyLocale: string; 
+  currencyCode: string; 
+  onRestore: (order: Order) => void; 
+  onDelete: (orderId: string) => void; 
+}) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const itemCount = order.items?.reduce((acc, item) => acc + item.quantity, 0) || 0;
+
+  return (
+    <div className="border-b border-slate-100 dark:border-zinc-800 last:border-0 pb-4 last:pb-0">
+      <div 
+        className="flex flex-col gap-2 cursor-pointer" 
+        onClick={() => setIsExpanded(!isExpanded)}
+      >
+        <div className="flex justify-between items-start">
+          <div>
+            <div className="flex items-center gap-2">
+                <p className="text-xs font-bold text-slate-900 dark:text-white">
+                Pedido #{order.id.slice(-8).toUpperCase()}
+                </p>
+                <span className={`material-symbols-outlined text-lg transition-transform duration-300 text-slate-400 ${isExpanded ? 'rotate-180' : ''}`}>
+                    expand_more
+                </span>
+            </div>
+            <p className="text-xs text-slate-500">
+              {new Date(order.createdAt).toLocaleDateString()} {new Date(order.createdAt).toLocaleTimeString()}
+            </p>
+          </div>
+          <span className={`text-xs px-2 py-1 rounded-full ${
+            ({
+              pending: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+              received: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+              processing: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400',
+              on_hold: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+              shipped: 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400',
+              delivered: 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400',
+              completed: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+              cancelled: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+              issue: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400'
+            } as Record<string, string>)[order.status]
+          }`}>
+            {({
+              pending: 'Pendiente',
+              received: 'Recibido',
+              processing: 'Procesando',
+              on_hold: 'En espera',
+              shipped: 'Enviado',
+              delivered: 'Entregado',
+              completed: 'Completado',
+              cancelled: 'Cancelado',
+              issue: 'Con incidencia'
+            } as Record<string, string>)[order.status]}
+          </span>
+        </div>
+        
+        <div className="flex justify-between items-center">
+            <p className="text-xs text-slate-500">
+                {itemCount} {itemCount === 1 ? 'producto' : 'productos'}
+            </p>
+            <p className="text-sm font-bold text-slate-900 dark:text-white">
+                {formatCurrency(order.total, currencyLocale, currencyCode)}
+            </p>
+        </div>
+      </div>
+
+      <div className={`grid transition-all duration-300 ease-in-out ${isExpanded ? 'grid-rows-[1fr] opacity-100 mt-4' : 'grid-rows-[0fr] opacity-0'}`}>
+        <div className="overflow-hidden">
+            {order.notes && (
+                <div className="mb-3 p-2 rounded-lg bg-slate-50 dark:bg-zinc-800 text-xs text-slate-700 dark:text-slate-300 flex items-start gap-2">
+                <span className="material-symbols-outlined text-slate-500 dark:text-slate-400 text-sm">info</span>
+                <p className="flex-1">{order.notes}</p>
+                </div>
+            )}
+            
+            <div className="space-y-2 mb-4">
+                {order.items?.map(item => (
+                    <div key={item.id} className="flex gap-2 text-xs">
+                        <img src={item.productImage} className="w-8 h-8 rounded bg-slate-100 object-cover" alt="" />
+                        <div className="flex-1">
+                            <p className="text-slate-900 dark:text-slate-200 line-clamp-1">{item.productName}</p>
+                            <p className="text-slate-500">{item.quantity} x ${item.price}</p>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            <div className="flex gap-2">
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onRestore(order);
+                    }}
+                    className="flex-1 text-xs text-blue-600 hover:text-blue-800 font-medium px-3 py-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors flex items-center justify-center gap-1"
+                >
+                    <span className="material-symbols-outlined text-[16px]">edit</span>
+                    Editar Pedido
+                </button>
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete(order.id);
+                    }}
+                    className="flex-1 text-xs text-red-500 hover:text-red-700 font-medium px-3 py-2 rounded-lg bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors flex items-center justify-center gap-1"
+                >
+                    <span className="material-symbols-outlined text-[16px]">delete</span>
+                    Eliminar
+                </button>
+            </div>
+        </div>
+      </div>
+    </div>
+  );
+};
