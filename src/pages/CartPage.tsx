@@ -4,6 +4,7 @@ import { useDatabase } from '../context/DatabaseContext';
 import { useStoreSettings } from '../context/StoreSettingsContext';
 import { useNavigate } from 'react-router-dom';
 import MessageModal from '../components/MessageModal';
+import AuthRequiredModal from '../components/AuthRequiredModal';
 import { formatCurrency } from '../utils/currency';
 
 const CartPage: React.FC = () => {
@@ -14,6 +15,7 @@ const CartPage: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
   const [isCheckingOut, setIsCheckingOut] = React.useState(false);
   const [isImporting, setIsImporting] = React.useState(false);
+  const [showAuthModal, setShowAuthModal] = React.useState(false);
   const [messageModal, setMessageModal] = React.useState({
     isOpen: false,
     title: '',
@@ -30,9 +32,7 @@ const CartPage: React.FC = () => {
       const currentUser = await queries.getCurrentUser();
       
       if (!currentUser) {
-        if (confirm("Necesitas iniciar sesión para importar tus favoritos. ¿Ir al login?")) {
-          navigate('/login');
-        }
+        setShowAuthModal(true);
         return;
       }
 
@@ -319,6 +319,11 @@ const CartPage: React.FC = () => {
         message={messageModal.message}
         isError={messageModal.isError}
         onClose={() => setMessageModal(prev => ({ ...prev, isOpen: false }))}
+      />
+
+      <AuthRequiredModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
       />
     </div>
   );

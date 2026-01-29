@@ -28,7 +28,7 @@ const MainLayout: React.FC = () => {
           {({ isActive }) => (
             <>
               <span className="material-symbols-outlined text-2xl" style={isActive ? { fontVariationSettings: "'FILL' 1" } : {}}>home</span>
-              <span className={`text-[10px] mt-1 ${isActive ? 'font-semibold' : 'font-medium'}`}>Inicio</span>
+              <span className={`text-xs mt-1 ${isActive ? 'font-semibold' : 'font-medium'}`}>Inicio</span>
             </>
           )}
         </NavLink>
@@ -40,7 +40,7 @@ const MainLayout: React.FC = () => {
           {({ isActive }) => (
             <>
               <span className="material-symbols-outlined text-2xl" style={isActive ? { fontVariationSettings: "'FILL' 1" } : {}}>grid_view</span>
-              <span className={`text-[10px] mt-1 ${isActive ? 'font-semibold' : 'font-medium'}`}>Categorías</span>
+              <span className={`text-xs mt-1 ${isActive ? 'font-semibold' : 'font-medium'}`}>Categorías</span>
             </>
           )}
         </NavLink>
@@ -52,7 +52,7 @@ const MainLayout: React.FC = () => {
           {({ isActive }) => (
             <>
               <span className="material-symbols-outlined text-2xl" style={isActive ? { fontVariationSettings: "'FILL' 1" } : {}}>storefront</span>
-              <span className={`text-[10px] mt-1 ${isActive ? 'font-semibold' : 'font-medium'}`}>Productos</span>
+              <span className={`text-xs mt-1 ${isActive ? 'font-semibold' : 'font-medium'}`}>Productos</span>
             </>
           )}
         </NavLink>
@@ -69,7 +69,7 @@ const MainLayout: React.FC = () => {
                   {totalItems}
                 </span>
               )}
-              <span className={`text-[10px] mt-1 ${isActive ? 'font-semibold' : 'font-medium'}`}>Carrito</span>
+              <span className={`text-xs mt-1 ${isActive ? 'font-semibold' : 'font-medium'}`}>Carrito</span>
             </>
           )}
         </NavLink>
@@ -81,7 +81,7 @@ const MainLayout: React.FC = () => {
           {({ isActive }) => (
             <>
               <span className="material-symbols-outlined text-2xl" style={isActive ? { fontVariationSettings: "'FILL' 1" } : {}}>person</span>
-              <span className={`text-[10px] mt-1 ${isActive ? 'font-semibold' : 'font-medium'}`}>Perfil</span>
+              <span className={`text-xs mt-1 ${isActive ? 'font-semibold' : 'font-medium'}`}>Perfil</span>
             </>
           )}
         </NavLink>

@@ -13,7 +13,7 @@ interface ProductCardProps {
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
-  const { addToCart } = useCart();
+  const { addToCart, items } = useCart();
   const { queries } = useDatabase();
   const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist();
   const { getSetting } = useStoreSettings();
@@ -22,6 +22,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const isLiked = isInWishlist(product.id);
   const currencyLocale = getSetting('currency_locale', 'es-CO');
   const currencyCode = getSetting('currency_code', 'COP');
+  
+  const cartItem = items.find(item => item.id === product.id);
+  const quantity = cartItem?.quantity || 0;
 
   const toggleWishlist = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -74,9 +77,16 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           <p className="text-slate-900 dark:text-slate-100 text-lg font-bold">{formatCurrency(product.price, currencyLocale, currencyCode)}</p>
           <button 
             onClick={() => addToCart(product)}
-            className="text-primary hover:text-blue-700"
+            className={`flex items-center gap-1 transition-colors ${quantity > 0 ? 'text-green-600 hover:text-green-700' : 'text-primary hover:text-blue-700'}`}
           >
-            <span className="material-symbols-outlined">add_shopping_cart</span>
+            {quantity > 0 ? (
+              <>
+                <span className="text-lg font-bold mr-0.5">{quantity}</span>
+                <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>shopping_cart</span>
+              </>
+            ) : (
+              <span className="material-symbols-outlined">add_shopping_cart</span>
+            )}
           </button>
         </div>
       </div>

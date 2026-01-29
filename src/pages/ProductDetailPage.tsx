@@ -48,6 +48,21 @@ const ProductDetailPage: React.FC = () => {
     fetchData();
   }, [id, queries]);
 
+  const [isViewerOpen, setIsViewerOpen] = useState(false);
+  const [scale, setScale] = useState(1);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [initialPinchDist, setInitialPinchDist] = useState<number | null>(null);
+  const [initialScale, setInitialScale] = useState(1);
+
+  // Reset zoom when image changes or viewer closes
+  useEffect(() => {
+    setScale(1);
+    setPosition({ x: 0, y: 0 });
+  }, [currentImageIndex, isViewerOpen]);
+
+  // Main Image Handlers (Tap to Open + Swipe)
   const onTouchStart = (e: React.TouchEvent) => {
     setTouchEnd(null); // Reset touch end
     setTouchStart(e.targetTouches[0].clientX);
@@ -58,7 +73,15 @@ const ProductDetailPage: React.FC = () => {
   };
 
   const onTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
+    if (!touchStart) return;
+    
+    // Tap detection (no move or very small move)
+    if (!touchEnd || Math.abs(touchStart - touchEnd) < 5) {
+      setIsViewerOpen(true);
+      setTouchStart(null);
+      setTouchEnd(null);
+      return;
+    }
     
     const distance = touchStart - touchEnd;
     const isLeftSwipe = distance > minSwipeDistance;
@@ -66,10 +89,12 @@ const ProductDetailPage: React.FC = () => {
 
     if (isLeftSwipe) {
       nextImage();
-    }
-    if (isRightSwipe) {
+    } else if (isRightSwipe) {
       prevImage();
     }
+    
+    setTouchStart(null);
+    setTouchEnd(null);
   };
 
   const onMouseDown = (e: React.MouseEvent) => {
@@ -84,7 +109,15 @@ const ProductDetailPage: React.FC = () => {
   };
 
   const onMouseUp = () => {
-    if (!touchStart || !touchEnd) {
+    if (!touchStart) {
+        setTouchStart(null);
+        setTouchEnd(null);
+        return;
+    }
+    
+    // Click detection
+    if (!touchEnd || Math.abs(touchStart - touchEnd) < 5) {
+        setIsViewerOpen(true);
         setTouchStart(null);
         setTouchEnd(null);
         return;
@@ -96,8 +129,7 @@ const ProductDetailPage: React.FC = () => {
 
     if (isLeftSwipe) {
       nextImage();
-    }
-    if (isRightSwipe) {
+    } else if (isRightSwipe) {
       prevImage();
     }
     
@@ -110,6 +142,111 @@ const ProductDetailPage: React.FC = () => {
      // Cancel swipe if mouse leaves the area
      setTouchStart(null);
      setTouchEnd(null);
+  };
+
+  // Viewer Handlers (Zoom + Pan + Swipe)
+  const onViewerWheel = (e: React.WheelEvent) => {
+    e.stopPropagation();
+    const delta = -Math.sign(e.deltaY) * 0.5;
+    const newScale = Math.min(Math.max(1, scale + delta), 4);
+    setScale(newScale);
+    if (newScale === 1) setPosition({ x: 0, y: 0 });
+  };
+
+  const onViewerTouchStart = (e: React.TouchEvent) => {
+    e.stopPropagation();
+    if (e.touches.length === 2) {
+      // Pinch Start
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      setInitialPinchDist(dist);
+      setInitialScale(scale);
+    } else if (e.touches.length === 1) {
+      // Pan/Swipe Start
+      setTouchStart(e.touches[0].clientX);
+      setDragStart({ x: e.touches[0].clientX - position.x, y: e.touches[0].clientY - position.y });
+      setIsDragging(true);
+    }
+  };
+
+  const onViewerTouchMove = (e: React.TouchEvent) => {
+    e.stopPropagation();
+    if (e.touches.length === 2 && initialPinchDist !== null) {
+      // Pinch Move
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      const delta = dist - initialPinchDist;
+      const newScale = Math.min(Math.max(1, initialScale + delta * 0.01), 4);
+      setScale(newScale);
+      if (newScale === 1) setPosition({ x: 0, y: 0 });
+    } else if (e.touches.length === 1 && isDragging) {
+      if (scale > 1) {
+        // Pan
+        setPosition({
+          x: e.touches[0].clientX - dragStart.x,
+          y: e.touches[0].clientY - dragStart.y
+        });
+      } else {
+        // Swipe tracking
+        setTouchEnd(e.touches[0].clientX);
+      }
+    }
+  };
+
+  const onViewerTouchEnd = (e: React.TouchEvent) => {
+    e.stopPropagation();
+    setIsDragging(false);
+    setInitialPinchDist(null);
+
+    if (scale > 1) return; // Don't swipe if zoomed in
+
+    if (touchStart && touchEnd) {
+      const distance = touchStart - touchEnd;
+      if (distance > minSwipeDistance) nextImage();
+      else if (distance < -minSwipeDistance) prevImage();
+    }
+    setTouchStart(null);
+    setTouchEnd(null);
+  };
+
+  const onViewerMouseDown = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsDragging(true);
+    setDragStart({ x: e.clientX - position.x, y: e.clientY - position.y });
+    setTouchStart(e.clientX); // For swipe detection logic reuse
+  };
+
+  const onViewerMouseMove = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!isDragging) return;
+
+    if (scale > 1) {
+        setPosition({
+            x: e.clientX - dragStart.x,
+            y: e.clientY - dragStart.y
+        });
+    } else {
+        setTouchEnd(e.clientX);
+    }
+  };
+
+  const onViewerMouseUp = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsDragging(false);
+    
+    if (scale > 1) return;
+
+    if (touchStart && touchEnd) {
+        const distance = touchStart - touchEnd;
+        if (distance > minSwipeDistance) nextImage();
+        else if (distance < -minSwipeDistance) prevImage();
+    }
+    setTouchStart(null);
+    setTouchEnd(null);
   };
 
   const nextImage = () => {
@@ -228,7 +365,7 @@ const ProductDetailPage: React.FC = () => {
             onMouseMove={onMouseMove}
             onMouseUp={onMouseUp}
             onMouseLeave={onMouseLeave}
-            style={{ cursor: displayImages.length > 1 ? 'grab' : 'default' }}
+            style={{ cursor: displayImages.length > 1 ? 'grab' : 'zoom-in' }}
           >
             <img 
               alt={`${product.name} - View ${currentImageIndex + 1}`} 
@@ -319,6 +456,73 @@ const ProductDetailPage: React.FC = () => {
         isOpen={showAuthModal} 
         onClose={() => setShowAuthModal(false)} 
       />
+
+      {/* Full Screen Image Viewer */}
+      {isViewerOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setIsViewerOpen(false)}>
+          <button 
+            onClick={() => setIsViewerOpen(false)}
+            className="absolute top-4 right-4 p-2 text-white/70 hover:text-white transition-colors z-[110]"
+          >
+            <span className="material-symbols-outlined text-4xl">close</span>
+          </button>
+          
+          <div className="relative w-full h-full flex items-center justify-center p-4" onClick={(e) => e.stopPropagation()} onWheel={onViewerWheel}>
+            {displayImages.length > 1 && (
+                <button 
+                    onClick={(e) => { e.stopPropagation(); prevImage(); }}
+                    className="absolute left-2 md:left-8 p-2 rounded-full bg-black/20 text-white/70 hover:text-white hover:bg-black/40 transition-all z-[110]"
+                >
+                    <span className="material-symbols-outlined text-4xl md:text-6xl">chevron_left</span>
+                </button>
+            )}
+
+            <img 
+              src={displayImages[currentImageIndex]} 
+              alt={product.name} 
+              className="max-w-full max-h-full object-contain select-none"
+              onTouchStart={onViewerTouchStart}
+              onTouchMove={onViewerTouchMove}
+              onTouchEnd={onViewerTouchEnd}
+              onMouseDown={onViewerMouseDown}
+              onMouseMove={onViewerMouseMove}
+              onMouseUp={onViewerMouseUp}
+              onMouseLeave={onViewerMouseUp}
+              style={{ 
+                cursor: scale > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default',
+                transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
+                transition: isDragging ? 'none' : 'transform 0.2s ease-out',
+                touchAction: 'none'
+              }}
+            />
+            
+            {displayImages.length > 1 && (
+                <button 
+                    onClick={(e) => { e.stopPropagation(); nextImage(); }}
+                    className="absolute right-2 md:right-8 p-2 rounded-full bg-black/20 text-white/70 hover:text-white hover:bg-black/40 transition-all z-[110]"
+                >
+                    <span className="material-symbols-outlined text-4xl md:text-6xl">chevron_right</span>
+                </button>
+            )}
+
+            {/* Viewer Dots */}
+            {displayImages.length > 1 && (
+              <div className="absolute bottom-8 left-0 right-0 flex justify-center gap-3 z-[110] pointer-events-none">
+                {displayImages.map((_, index) => (
+                  <div
+                    key={index}
+                    className={`w-2 h-2 rounded-full transition-all shadow-sm ${
+                      currentImageIndex === index 
+                        ? 'bg-white scale-150' 
+                        : 'bg-white/30'
+                    }`}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -40,17 +40,17 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen w-full items-center justify-center bg-background-light dark:bg-background-dark px-4">
       <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-zinc-900 p-6 shadow-lg border border-slate-100 dark:border-zinc-800">
-        <h1 className="text-xl font-bold text-slate-900 dark:text-white text-center mb-2">
+        <h1 className="text-[28px] font-bold text-slate-900 dark:text-white text-center mb-2">
           {mustChangePasswordMode ? 'Actualizar Contraseña' : (isRegister ? 'Crear cuenta' : 'Bienvenido')}
         </h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400 text-center mb-6">
+        <p className="text-base text-slate-500 dark:text-slate-400 text-center mb-6">
           {mustChangePasswordMode ? 'Debes cambiar tu contraseña para continuar' : (isRegister ? 'Crea tu cuenta para continuar' : 'Inicia sesión para continuar')}
         </p>
 
         {mustChangePasswordMode ? (
           <form className="space-y-4" onSubmit={handleChangePasswordSubmit}>
              <div className="space-y-1">
-              <label className="block text-xs font-medium text-slate-600 dark:text-slate-300">
+              <label className="block text-sm font-medium text-slate-600 dark:text-slate-300">
                 Nueva Contraseña
               </label>
               <input
@@ -63,7 +63,7 @@ export default function LoginPage() {
               />
             </div>
             <div className="space-y-1">
-              <label className="block text-xs font-medium text-slate-600 dark:text-slate-300">
+              <label className="block text-sm font-medium text-slate-600 dark:text-slate-300">
                 Confirmar Nueva Contraseña
               </label>
               <input
@@ -96,7 +96,7 @@ export default function LoginPage() {
                 setError('');
                 setPassword(''); // clear password to force re-entry or just clean state
               }}
-              className="mt-3 w-full text-xs text-slate-600 dark:text-slate-300 underline"
+              className="mt-3 w-full text-sm text-slate-600 dark:text-slate-300 underline"
             >
               Cancelar
             </button>
@@ -165,7 +165,7 @@ export default function LoginPage() {
           }}
         >
           <div className="space-y-1">
-            <label className="block text-xs font-medium text-slate-600 dark:text-slate-300">
+            <label className="block text-sm font-medium text-slate-600 dark:text-slate-300">
               Correo electrónico
             </label>
             <input
@@ -179,7 +179,7 @@ export default function LoginPage() {
           </div>
 
           <div className="space-y-1">
-            <label className="block text-xs font-medium text-slate-600 dark:text-slate-300">
+            <label className="block text-sm font-medium text-slate-600 dark:text-slate-300">
               Contraseña
             </label>
             <input
@@ -194,7 +194,7 @@ export default function LoginPage() {
 
           {isRegister && (
             <div className="space-y-1">
-              <label className="block text-xs font-medium text-slate-600 dark:text-slate-300">
+              <label className="block text-sm font-medium text-slate-600 dark:text-slate-300">
                 Confirmar contraseña
               </label>
               <input
@@ -223,7 +223,7 @@ export default function LoginPage() {
 
           <button
             type="button"
-            className="mt-3 w-full text-xs text-slate-600 dark:text-slate-300 underline"
+            className="mt-3 w-full text-sm text-slate-600 dark:text-slate-300 underline"
             onClick={() => {
               setError('');
               setConfirmPassword('');
@@ -239,7 +239,7 @@ export default function LoginPage() {
           <button
             type="button"
             onClick={() => navigate('/')}
-            className="flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-primary dark:text-slate-400 dark:hover:text-white transition-colors"
+            className="flex items-center gap-2 text-base font-medium text-slate-500 hover:text-primary dark:text-slate-400 dark:hover:text-white transition-colors"
           >
             <span className="material-symbols-outlined text-[20px]">home</span>
             Volver al inicio
