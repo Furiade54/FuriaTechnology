@@ -11,7 +11,7 @@ import type { Product, User } from '../types';
 const ProductDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { addToCart } = useCart();
+  const { addToCart, items } = useCart();
   const { queries } = useDatabase();
   const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist();
   const { getSetting } = useStoreSettings();
@@ -20,6 +20,9 @@ const ProductDetailPage: React.FC = () => {
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const [product, setProduct] = useState<Product | undefined>(undefined);
+
+  const cartItem = useMemo(() => items.find(item => item.id === product?.id), [items, product]);
+  const quantity = cartItem?.quantity || 0;
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -448,7 +451,14 @@ const ProductDetailPage: React.FC = () => {
           onClick={() => addToCart(product)}
           className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-xl text-lg flex items-center justify-center gap-2 transition-colors shadow-lg shadow-primary/20"
         >
-          <span className="material-symbols-outlined">add_shopping_cart</span>
+          {quantity > 0 ? (
+            <>
+              <span className="text-2xl font-bold mr-1">{quantity}</span>
+              <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>shopping_cart</span>
+            </>
+          ) : (
+            <span className="material-symbols-outlined">add_shopping_cart</span>
+          )}
           Agregar al Carrito
         </button>
       </div>
