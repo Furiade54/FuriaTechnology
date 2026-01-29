@@ -66,14 +66,14 @@ const CategoriesPage: React.FC = () => {
               <input 
                 autoFocus
                 type="text"
-                placeholder="Search categories..."
+                placeholder="Buscar categorías..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full h-10 px-4 rounded-full bg-slate-100 dark:bg-zinc-800 border-none focus:ring-2 focus:ring-primary text-slate-900 dark:text-white placeholder:text-slate-400 outline-none"
               />
             </div>
           ) : (
-            <h1 className="text-lg font-bold flex-1 text-center text-slate-900 dark:text-white animate-fadeIn">Product Categories</h1>
+            <h1 className="text-lg font-bold flex-1 text-center text-slate-900 dark:text-white animate-fadeIn">Categorías de Productos</h1>
           )}
 
           <div className="flex w-12 items-center justify-end">
@@ -108,13 +108,13 @@ const CategoriesPage: React.FC = () => {
                 </span>
               </div>
               <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-200">{category.name}</h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400">{getProductCount(category.name)} items</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">{getProductCount(category.name)} productos</p>
             </Link>
           ))
         ) : (
           <div className="col-span-2 flex flex-col items-center justify-center py-12 text-slate-400 dark:text-slate-500">
             <span className="material-symbols-outlined text-4xl mb-2">search_off</span>
-            <p>No categories found</p>
+            <p>No se encontraron categorías</p>
           </div>
         )}
       </div>

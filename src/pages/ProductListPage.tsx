@@ -10,11 +10,12 @@ const ProductListPage: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [searchParams] = useSearchParams();
   const categoryFilter = searchParams.get('category');
+  const initialSearchQuery = searchParams.get('search') || '';
   const navigate = useNavigate();
   const [isFilterOpen, setIsFilterOpen] = React.useState(false);
   const [sortBy, setSortBy] = React.useState<'default' | 'price-asc' | 'price-desc'>('default');
-  const [isSearchVisible, setIsSearchVisible] = React.useState(false);
-  const [searchQuery, setSearchQuery] = React.useState('');
+  const [isSearchVisible, setIsSearchVisible] = React.useState(!!initialSearchQuery);
+  const [searchQuery, setSearchQuery] = React.useState(initialSearchQuery);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -37,7 +38,8 @@ const ProductListPage: React.FC = () => {
       const query = searchQuery.toLowerCase();
       result = result.filter(p => 
         p.name.toLowerCase().includes(query) || 
-        p.description?.toLowerCase().includes(query)
+        p.description?.toLowerCase().includes(query) ||
+        p.category.toLowerCase().includes(query)
       );
     }
 
@@ -68,7 +70,7 @@ const ProductListPage: React.FC = () => {
               <input 
                 autoFocus
                 type="text"
-                placeholder="Search products..."
+                placeholder="Buscar productos..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full h-10 px-4 rounded-full bg-slate-100 dark:bg-zinc-800 border-none focus:ring-2 focus:ring-primary text-slate-900 dark:text-white placeholder:text-slate-400 outline-none"
@@ -76,7 +78,7 @@ const ProductListPage: React.FC = () => {
             </div>
           ) : (
             <h1 className="text-lg font-bold flex-1 text-center text-slate-900 dark:text-white animate-fadeIn">
-              {categoryFilter ? categoryFilter : 'All Products'}
+              {categoryFilter ? categoryFilter : 'Todos los Productos'}
             </h1>
           )}
 
@@ -105,24 +107,24 @@ const ProductListPage: React.FC = () => {
             {isFilterOpen && (
               <div className="absolute top-12 right-0 w-48 bg-white dark:bg-zinc-800 rounded-lg shadow-xl border border-slate-100 dark:border-zinc-700 overflow-hidden z-20">
                 <div className="p-2">
-                  <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 px-3 py-2 uppercase tracking-wider">Sort By</p>
+                  <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 px-3 py-2 uppercase tracking-wider">Ordenar Por</p>
                   <button 
                     onClick={() => { setSortBy('default'); setIsFilterOpen(false); }}
                     className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors ${sortBy === 'default' ? 'bg-primary/10 text-primary font-medium' : 'text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-zinc-700'}`}
                   >
-                    Featured
+                    Destacados
                   </button>
                   <button 
                     onClick={() => { setSortBy('price-asc'); setIsFilterOpen(false); }}
                     className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors ${sortBy === 'price-asc' ? 'bg-primary/10 text-primary font-medium' : 'text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-zinc-700'}`}
                   >
-                    Price: Low to High
+                    Precio: Menor a Mayor
                   </button>
                   <button 
                     onClick={() => { setSortBy('price-desc'); setIsFilterOpen(false); }}
                     className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors ${sortBy === 'price-desc' ? 'bg-primary/10 text-primary font-medium' : 'text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-zinc-700'}`}
                   >
-                    Price: High to Low
+                    Precio: Mayor a Menor
                   </button>
                 </div>
               </div>
@@ -144,7 +146,7 @@ const ProductListPage: React.FC = () => {
         ) : (
           <div className="col-span-2 flex flex-col items-center justify-center py-12 text-slate-400 dark:text-slate-500">
             <span className="material-symbols-outlined text-4xl mb-2">search_off</span>
-            <p>No products found</p>
+            <p>No se encontraron productos</p>
           </div>
         )}
       </div>

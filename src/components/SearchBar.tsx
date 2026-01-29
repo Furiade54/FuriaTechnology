@@ -13,7 +13,7 @@ const SearchBar: React.FC = () => {
           </div>
           <input 
             className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-full text-slate-900 dark:text-slate-100 focus:outline-0 focus:ring-0 border-none bg-white dark:bg-slate-800 focus:border-none h-full placeholder:text-slate-500 dark:placeholder:text-slate-400 px-4 rounded-l-none border-l-0 pl-2 text-base font-normal leading-normal" 
-            placeholder="Search for products..." 
+            placeholder="Buscar productos..." 
             value={value}
             onChange={(e) => {
               const v = e.target.value;
@@ -21,6 +21,14 @@ const SearchBar: React.FC = () => {
               const secretCode = import.meta.env.VITE_SUPERADMIN_KEY;
               if (secretCode && v.trim().toLowerCase() === secretCode.toLowerCase()) {
                 navigate('/admin', { state: { secretAccess: true } });
+              }
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                if (value.trim()) {
+                  navigate(`/products?search=${encodeURIComponent(value.trim())}`);
+                }
               }
             }}
           />

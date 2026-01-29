@@ -41,7 +41,7 @@ export default function LoginPage() {
     <div className="flex min-h-screen w-full items-center justify-center bg-background-light dark:bg-background-dark px-4">
       <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-zinc-900 p-6 shadow-lg border border-slate-100 dark:border-zinc-800">
         <h1 className="text-xl font-bold text-slate-900 dark:text-white text-center mb-2">
-          {mustChangePasswordMode ? 'Actualizar Contraseña' : (isRegister ? 'Create account' : 'Welcome back')}
+          {mustChangePasswordMode ? 'Actualizar Contraseña' : (isRegister ? 'Crear cuenta' : 'Bienvenido')}
         </h1>
         <p className="text-sm text-slate-500 dark:text-slate-400 text-center mb-6">
           {mustChangePasswordMode ? 'Debes cambiar tu contraseña para continuar' : (isRegister ? 'Crea tu cuenta para continuar' : 'Inicia sesión para continuar')}
@@ -166,21 +166,21 @@ export default function LoginPage() {
         >
           <div className="space-y-1">
             <label className="block text-xs font-medium text-slate-600 dark:text-slate-300">
-              Email
+              Correo electrónico
             </label>
             <input
               type="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               className="w-full rounded-xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-900 px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
-              placeholder="you@example.com"
+              placeholder="tu@correo.com"
               required
             />
           </div>
 
           <div className="space-y-1">
             <label className="block text-xs font-medium text-slate-600 dark:text-slate-300">
-              Password
+              Contraseña
             </label>
             <input
               type="password"

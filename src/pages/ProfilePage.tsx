@@ -124,7 +124,7 @@ export default function ProfilePage() {
     <div className="flex flex-col min-h-screen bg-background-light dark:bg-background-dark font-sans pb-24">
       <div className="sticky top-0 z-10 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-sm border-b border-slate-200 dark:border-zinc-800">
         <div className="flex items-center p-4">
-          <h1 className="text-lg font-bold flex-1 text-center text-slate-900 dark:text-white">Profile</h1>
+          <h1 className="text-lg font-bold flex-1 text-center text-slate-900 dark:text-white">Perfil</h1>
         </div>
       </div>
 
@@ -134,7 +134,7 @@ export default function ProfilePage() {
             {user.avatar ? (
               <img 
                 src={user.avatar}
-                alt="User Avatar" 
+                alt="Avatar de Usuario" 
                 className="w-full h-full object-cover"
               />
             ) : (
@@ -440,7 +440,7 @@ export default function ProfilePage() {
 
                 {showFormHere && (
                   <div className="p-4 bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-slate-100 dark:border-zinc-800 space-y-4">
-                    <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Personal Information</h3>
+                    <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Información Personal</h3>
                     <form
                       className="space-y-4"
                       onSubmit={(event) => {
@@ -455,19 +455,19 @@ export default function ProfilePage() {
                     >
                       <div className="space-y-1">
                         <label className="block text-xs font-medium text-slate-600 dark:text-slate-300">
-                          Name
+                          Nombre
                         </label>
                         <input
                           value={name}
                           onChange={(event) => setName(event.target.value)}
                           className="w-full rounded-xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-900 px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
-                          placeholder="Your name"
+                          placeholder="Tu nombre"
                         />
                       </div>
 
                       <div className="space-y-1">
                         <label className="block text-xs font-medium text-slate-600 dark:text-slate-300">
-                          Phone
+                          Teléfono
                         </label>
                         <input
                           value={phone}
@@ -479,13 +479,13 @@ export default function ProfilePage() {
 
                       <div className="space-y-1">
                         <label className="block text-xs font-medium text-slate-600 dark:text-slate-300">
-                          City
+                          Ciudad
                         </label>
                         <input
                           value={city}
                           onChange={(event) => setCity(event.target.value)}
                           className="w-full rounded-xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-900 px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
-                          placeholder="Your city"
+                          placeholder="Tu ciudad"
                         />
                       </div>
 
@@ -495,13 +495,13 @@ export default function ProfilePage() {
                           onClick={() => setShowPersonalForm(false)}
                           className="flex-1 h-10 rounded-xl border border-slate-200 dark:border-zinc-700 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-zinc-800/80 transition-colors"
                         >
-                          Cancel
+                          Cancelar
                         </button>
                         <button
                           type="submit"
                           className="flex-1 h-10 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-colors"
                         >
-                          Save
+                          Guardar
                         </button>
                       </div>
                     </form>

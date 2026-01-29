@@ -32,7 +32,7 @@ const HomePage: React.FC = () => {
       
       <CategoryChips />
       
-      <h3 className="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-6">Today's Top Deals</h3>
+      <h3 className="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-6">Ofertas Destacadas</h3>
       <div className="grid grid-cols-2 gap-4 p-4">
         {featuredProducts.map((product) => (
           <ProductCard key={product.id} product={product} />

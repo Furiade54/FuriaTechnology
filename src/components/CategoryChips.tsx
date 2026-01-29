@@ -36,7 +36,7 @@ const CategoryChips: React.FC<CategoryChipsProps> = ({ showTitle = true }) => {
     <>
       {showTitle && (
         <h3 className="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-4">
-          Shop by Category
+          Comprar por Categoría
         </h3>
       )}
       <div className="flex gap-3 px-4 py-2 overflow-x-auto [-ms-scrollbar-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -52,7 +52,7 @@ const CategoryChips: React.FC<CategoryChipsProps> = ({ showTitle = true }) => {
             apps
           </span>
           <p className={`text-sm font-medium leading-normal ${currentCategory && 'text-slate-900 dark:text-slate-100'}`}>
-            All
+            Todos
           </p>
         </Link>
         {categories.map((cat) => (

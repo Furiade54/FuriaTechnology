@@ -200,7 +200,7 @@ const ProductDetailPage: React.FC = () => {
               <span className="material-symbols-outlined">arrow_back_ios_new</span>
             </button>
           </div>
-          <h1 className="text-lg font-bold flex-1 text-center text-zinc-900 dark:text-white">Product Details</h1>
+          <h1 className="text-lg font-bold flex-1 text-center text-zinc-900 dark:text-white">Detalles del Producto</h1>
           <div className="flex w-12 items-center justify-end">
             <button 
               onClick={toggleWishlist}
@@ -260,7 +260,7 @@ const ProductDetailPage: React.FC = () => {
                         ? 'bg-primary scale-125 w-4' 
                         : 'bg-slate-300 dark:bg-zinc-600 hover:bg-slate-400'
                     }`}
-                    aria-label={`View image ${index + 1}`}
+                    aria-label={`Ver imagen ${index + 1}`}
                   />
                 ))}
               </div>
@@ -278,27 +278,29 @@ const ProductDetailPage: React.FC = () => {
             <div className="flex items-center gap-4 text-sm text-zinc-500 dark:text-zinc-400">
               <span>SKU: {product.sku}</span>
               <span className="h-4 border-l border-zinc-300 dark:border-zinc-700"></span>
-              <span>Category: {product.category}</span>
+              <span>Categoría: {product.category}</span>
             </div>
             
-            <div>
-              <h3 className="text-lg font-semibold text-zinc-900 dark:text-white mb-2">Description</h3>
-              <p className="text-zinc-600 dark:text-zinc-300 leading-relaxed">
+            <div className="flex flex-col gap-2">
+              <h2 className="text-lg font-bold text-zinc-900 dark:text-white">Descripción</h2>
+              <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
                 {product.description}
               </p>
             </div>
-            
-            <div>
-              <h3 className="text-lg font-semibold text-zinc-900 dark:text-white mb-3">Technical Specifications</h3>
-              <div className="space-y-3">
-                {Object.entries(product.specifications).map(([key, value]) => (
-                  <div key={key} className="flex justify-between items-center text-sm border-b border-slate-50 dark:border-zinc-800 pb-2 last:border-0">
-                    <span className="font-medium text-zinc-500 dark:text-zinc-400">{key}</span>
-                    <span className="font-semibold text-zinc-800 dark:text-zinc-100">{value}</span>
-                  </div>
-                ))}
+
+            {product.specifications && Object.keys(product.specifications).length > 0 && (
+              <div className="flex flex-col gap-2">
+                <h2 className="text-lg font-bold text-zinc-900 dark:text-white">Especificaciones Técnicas</h2>
+                <div className="grid grid-cols-1 gap-2">
+                  {Object.entries(product.specifications).map(([key, value]) => (
+                    <div key={key} className="flex justify-between items-center py-2 border-b border-zinc-100 dark:border-zinc-800 last:border-0">
+                      <span className="text-sm font-medium text-zinc-500 dark:text-zinc-400 capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
+                      <span className="text-sm font-semibold text-zinc-900 dark:text-white">{String(value)}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </main>
@@ -309,7 +311,7 @@ const ProductDetailPage: React.FC = () => {
           className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-xl text-lg flex items-center justify-center gap-2 transition-colors shadow-lg shadow-primary/20"
         >
           <span className="material-symbols-outlined">add_shopping_cart</span>
-          Add to Cart
+          Agregar al Carrito
         </button>
       </div>
       

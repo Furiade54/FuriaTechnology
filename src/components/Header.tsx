@@ -41,7 +41,7 @@ const Header: React.FC<HeaderProps> = ({
     }
   };
 
-  const displayName = userName || user?.name || "Guest";
+  const displayName = userName || user?.name || "Invitado";
   const displayAvatar = userAvatar || user?.avatar;
 
   return (
@@ -86,7 +86,7 @@ const Header: React.FC<HeaderProps> = ({
           </Link>
         </div>
       </div>
-      <p className="text-slate-900 dark:text-slate-100 tracking-light text-[28px] font-bold leading-tight">Hi, {displayName}</p>
+      <p className="text-slate-900 dark:text-slate-100 tracking-light text-[28px] font-bold leading-tight">Hola {displayName}</p>
     </div>
   );
 };
