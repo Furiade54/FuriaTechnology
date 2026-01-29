@@ -13,13 +13,14 @@ import { CartProvider } from './context/CartContext';
 import { WishlistProvider } from './context/WishlistContext';
 import OfflineIndicator from './components/OfflineIndicator';
 import FloatingWishlistButton from './components/FloatingWishlistButton';
+import ScrollToTop from './components/ScrollToTop';
 import { useEffect } from 'react';
 import './App.css';
 
 function App() {
   useEffect(() => {
-    // Check local storage or system preference for dark mode
-    if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+    // Check local storage for dark mode preference. Defaults to light mode if not set.
+    if (localStorage.getItem('theme') === 'dark') {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
@@ -31,6 +32,7 @@ function App() {
       <WishlistProvider>
         <OfflineIndicator />
         <Router>
+          <ScrollToTop />
           <FloatingWishlistButton />
           <Routes>
           <Route path="/login" element={<LoginPage />} />

@@ -1,13 +1,22 @@
-import React from 'react';
-import { Outlet, NavLink } from 'react-router-dom';
+import React, { useEffect, useRef } from 'react';
+import { Outlet, NavLink, useLocation } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 
 const MainLayout: React.FC = () => {
   const { totalItems } = useCart();
+  const { pathname } = useLocation();
+  const mainRef = useRef<HTMLDivElement>(null);
+
+  // Reset scroll position when route changes
+  useEffect(() => {
+    if (mainRef.current) {
+      mainRef.current.scrollTop = 0;
+    }
+  }, [pathname]);
 
   return (
     <div className="min-h-screen bg-background-light dark:bg-background-dark flex flex-col font-sans">
-      <main className="flex-1 overflow-y-auto pb-16">
+      <main ref={mainRef} className="flex-1 overflow-y-auto pb-16">
         <Outlet />
       </main>
       
