@@ -11,7 +11,7 @@ import { formatCurrency } from '../utils/currency';
 const WishlistPage: React.FC = () => {
   const { queries } = useDatabase();
   const { removeFromWishlist } = useWishlist();
-  const { addToCart } = useCart();
+  const { addToCart, items: cartItems } = useCart();
   const { getSetting } = useStoreSettings();
   const navigate = useNavigate();
   const [wishlistItems, setWishlistItems] = useState<Product[]>([]);
@@ -52,7 +52,11 @@ const WishlistPage: React.FC = () => {
 
   const confirmAddAllToCart = () => {
     wishlistItems.forEach(product => {
-      addToCart(product);
+      // Check if already in cart to avoid duplicates
+      const isInCart = cartItems.some(item => item.id === product.id);
+      if (!isInCart) {
+        addToCart(product);
+      }
     });
     setIsConfirmModalOpen(false);
     navigate('/cart');

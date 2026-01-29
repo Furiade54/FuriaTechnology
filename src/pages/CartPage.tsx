@@ -52,19 +52,29 @@ const CartPage: React.FC = () => {
 
       let addedCount = 0;
       wishlistProducts.forEach(product => {
-        // Check if already in cart to avoid duplicates or just increase quantity?
-        // Context addToCart usually handles this or adds as new item. 
-        // Let's assume addToCart is smart enough or we just add them.
-        addToCart(product);
-        addedCount++;
+        // Check if already in cart to avoid duplicates
+        const isInCart = items.some(item => item.id === product.id);
+        if (!isInCart) {
+          addToCart(product);
+          addedCount++;
+        }
       });
 
-      setMessageModal({
-        isOpen: true,
-        title: 'Importamos tus favoritos!',
-        message: `Se han importado ${addedCount} productos al carrito.`,
-        isError: false
-      });
+      if (addedCount > 0) {
+        setMessageModal({
+          isOpen: true,
+          title: 'Importamos tus favoritos!',
+          message: `Se han importado ${addedCount} productos nuevos al carrito.`,
+          isError: false
+        });
+      } else {
+        setMessageModal({
+          isOpen: true,
+          title: 'Sin cambios',
+          message: 'Todos tus favoritos ya estaban en el carrito.',
+          isError: false
+        });
+      }
       setIsMenuOpen(false);
       
     } catch (error) {
@@ -225,11 +235,17 @@ const CartPage: React.FC = () => {
           items.map((item) => (
             <div key={item.id} className="bg-white dark:bg-zinc-900 rounded-2xl p-4 flex gap-4 shadow-sm border border-slate-100 dark:border-zinc-800">
               <div className="w-24 h-24 bg-slate-100 dark:bg-zinc-800 rounded-xl overflow-hidden shrink-0 cursor-pointer" onClick={() => navigate(`/product/${item.id}`)}>
-                <img 
-                  src={item.image} 
-                  alt={item.name} 
-                  className="w-full h-full object-cover"
-                />
+                {item.image && item.image.trim() !== '' ? (
+                  <img 
+                    src={item.image} 
+                    alt={item.name} 
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-slate-200 dark:bg-zinc-700">
+                    <span className="material-symbols-outlined text-slate-400">image</span>
+                  </div>
+                )}
               </div>
               
               <div className="flex-1 flex flex-col justify-between py-1">

@@ -1629,7 +1629,13 @@ const AdminDashboardPage: React.FC = () => {
                             editingProductId === product.id ? 'border-indigo-500 ring-1 ring-indigo-500' : 'border-slate-200 dark:border-zinc-800'
                         } ${product.isActive === false ? 'opacity-60' : ''}`}>
                             <div className="aspect-square rounded-lg bg-slate-100 dark:bg-zinc-800 overflow-hidden relative group">
-                                <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                                {product.image && product.image.trim() !== '' ? (
+                                    <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center">
+                                        <span className="material-symbols-outlined text-slate-400">image</span>
+                                    </div>
+                                )}
                                 {product.isFeatured && (
                                     <span className="absolute top-1 right-1 bg-yellow-400 text-yellow-900 text-[10px] font-bold px-1.5 py-0.5 rounded">★</span>
                                 )}

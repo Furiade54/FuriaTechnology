@@ -270,7 +270,8 @@ const ProductDetailPage: React.FC = () => {
   
   const displayImages = useMemo(() => {
     if (!product) return [];
-    return (product.images && product.images.length > 0) ? product.images : [product.image];
+    const images = (product.images && product.images.length > 0) ? product.images : (product.image ? [product.image] : []);
+    return images.filter(img => img && img.trim() !== '');
   }, [product]);
 
   useEffect(() => {
@@ -477,24 +478,30 @@ const ProductDetailPage: React.FC = () => {
                 </button>
             )}
 
-            <img 
-              src={displayImages[currentImageIndex]} 
-              alt={product.name} 
-              className="max-w-full max-h-full object-contain select-none"
-              onTouchStart={onViewerTouchStart}
-              onTouchMove={onViewerTouchMove}
-              onTouchEnd={onViewerTouchEnd}
-              onMouseDown={onViewerMouseDown}
-              onMouseMove={onViewerMouseMove}
-              onMouseUp={onViewerMouseUp}
-              onMouseLeave={onViewerMouseUp}
-              style={{ 
-                cursor: scale > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default',
-                transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
-                transition: isDragging ? 'none' : 'transform 0.2s ease-out',
-                touchAction: 'none'
-              }}
-            />
+            {displayImages.length > 0 ? (
+              <img 
+                src={displayImages[currentImageIndex]} 
+                alt={product.name} 
+                className="max-w-full max-h-full object-contain select-none"
+                onTouchStart={onViewerTouchStart}
+                onTouchMove={onViewerTouchMove}
+                onTouchEnd={onViewerTouchEnd}
+                onMouseDown={onViewerMouseDown}
+                onMouseMove={onViewerMouseMove}
+                onMouseUp={onViewerMouseUp}
+                onMouseLeave={onViewerMouseUp}
+                style={{ 
+                  cursor: scale > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default',
+                  transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
+                  transition: isDragging ? 'none' : 'transform 0.2s ease-out',
+                  touchAction: 'none'
+                }}
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <span className="material-symbols-outlined text-6xl text-white/50">image_not_supported</span>
+              </div>
+            )}
             
             {displayImages.length > 1 && (
                 <button 

@@ -49,7 +49,7 @@ const Header: React.FC<HeaderProps> = ({
       <div className="flex items-center h-12 justify-between">
         <div className="flex size-12 shrink-0 items-center">
           <Link to={user ? "/profile" : "/login"} className="size-10 rounded-full overflow-hidden border border-slate-200 dark:border-zinc-700 block cursor-pointer hover:opacity-80 transition-opacity">
-            {displayAvatar ? (
+            {displayAvatar && displayAvatar.trim() !== '' ? (
               <img 
                 src={displayAvatar} 
                 alt={`User profile picture of ${displayName}`}
