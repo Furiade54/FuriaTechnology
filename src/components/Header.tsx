@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
 import { useDatabase } from '../context/DatabaseContext';
 import { useNotification } from '../context/NotificationContext';
+import { useStoreSettings } from '../context/StoreSettingsContext';
 import { Link, useNavigate } from 'react-router-dom';
 import type { User } from '../types';
 
@@ -17,8 +18,11 @@ const Header: React.FC<HeaderProps> = ({
   const { totalItems } = useCart();
   const { queries } = useDatabase();
   const { unreadCount, clearUnreadCount } = useNotification();
+  const { getSetting } = useStoreSettings();
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
+  
+  const logoUrl = getSetting('logo_url');
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -86,6 +90,11 @@ const Header: React.FC<HeaderProps> = ({
           </Link>
         </div>
       </div>
+      {logoUrl && (
+        <div className="mb-2 mt-1">
+          <img src={logoUrl} alt="Store Logo" className="h-10 object-contain" />
+        </div>
+      )}
       <p className="text-slate-900 dark:text-slate-100 tracking-light text-[28px] font-bold leading-tight">Hola {displayName}</p>
     </div>
   );

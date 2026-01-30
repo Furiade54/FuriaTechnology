@@ -832,5 +832,23 @@ export const supabaseQueries = {
       subtitle: row.subtitle,
       route: row.route
     }));
+  },
+
+  // Storage
+  uploadFile: async (file: File, bucket: string = 'settings'): Promise<string> => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
+    const filePath = `${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from(bucket)
+      .upload(filePath, file);
+
+    if (uploadError) {
+      handleError(uploadError);
+    }
+
+    const { data } = supabase.storage.from(bucket).getPublicUrl(filePath);
+    return data.publicUrl;
   }
 };

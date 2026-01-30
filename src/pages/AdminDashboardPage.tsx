@@ -52,8 +52,10 @@ const AdminDashboardPage: React.FC = () => {
     primary_color: '',
     currency_code: '',
     currency_locale: '',
-    contact_whatsapp: ''
+    contact_whatsapp: '',
+    logo_url: ''
   });
+  const [uploadingLogo, setUploadingLogo] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   
   const [users, setUsers] = useState<User[]>([]);
@@ -184,7 +186,8 @@ const AdminDashboardPage: React.FC = () => {
         primary_color: settingsMap['primary_color'] || '',
         currency_code: settingsMap['currency_code'] || 'COP',
         currency_locale: settingsMap['currency_locale'] || 'es-CO',
-        contact_whatsapp: settingsMap['contact_whatsapp'] || ''
+        contact_whatsapp: settingsMap['contact_whatsapp'] || '',
+        logo_url: settingsMap['logo_url'] || ''
       });
     } catch (error) {
       console.error("Error fetching admin data:", error);
@@ -715,6 +718,23 @@ const AdminDashboardPage: React.FC = () => {
     }
   };
 
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    const file = e.target.files[0];
+    
+    try {
+      setUploadingLogo(true);
+      // @ts-ignore - dynamic method added to queries
+      const url = await queries.uploadFile(file, 'settings');
+      setSettingsForm({ ...settingsForm, logo_url: url });
+    } catch (error) {
+      console.error("Error uploading logo:", error);
+      alert('Error al subir el logo');
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
+
   const handleSaveSettings = async () => {
     try {
       await queries.updateStoreSetting('store_name', settingsForm.store_name);
@@ -722,6 +742,7 @@ const AdminDashboardPage: React.FC = () => {
       await queries.updateStoreSetting('currency_code', settingsForm.currency_code);
       await queries.updateStoreSetting('currency_locale', settingsForm.currency_locale);
       await queries.updateStoreSetting('contact_whatsapp', settingsForm.contact_whatsapp);
+      await queries.updateStoreSetting('logo_url', settingsForm.logo_url);
       
       await refreshSettings();
       refreshData();
@@ -1100,6 +1121,32 @@ const AdminDashboardPage: React.FC = () => {
                       
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-4">
+                          <div>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Logo de la Tienda</label>
+                            <div className="flex items-center gap-4">
+                              <div className="h-20 w-20 rounded-lg bg-slate-100 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 flex items-center justify-center overflow-hidden relative group">
+                                {settingsForm.logo_url ? (
+                                  <img src={settingsForm.logo_url} alt="Store Logo" className="w-full h-full object-contain" />
+                                ) : (
+                                  <span className="material-symbols-outlined text-slate-400 text-3xl">store</span>
+                                )}
+                                {uploadingLogo && (
+                                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                                    <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-white"></div>
+                                  </div>
+                                )}
+                              </div>
+                              <div className="flex-1">
+                                <label className="cursor-pointer inline-flex items-center px-4 py-2 border border-slate-300 dark:border-zinc-600 rounded-lg shadow-sm text-sm font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-zinc-800 hover:bg-slate-50 dark:hover:bg-zinc-700">
+                                  <span className="material-symbols-outlined text-lg mr-2">upload</span>
+                                  Subir Logo
+                                  <input type="file" className="hidden" accept="image/*" onChange={handleLogoUpload} disabled={uploadingLogo} />
+                                </label>
+                                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Recomendado: PNG o SVG transparente</p>
+                              </div>
+                            </div>
+                          </div>
+
                           <div>
                             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Nombre de la Tienda</label>
                             <input 
