@@ -1454,4 +1454,12 @@ export const dbQuery = {
     }));
   },
 
+  // Storage (Mock)
+  uploadFile: async (file: File, bucket: string = 'settings'): Promise<string> => {
+    // In a real local-first app, we might save the file to IndexedDB/Blob storage.
+    // For now, since we rely on Supabase Storage for public URLs, we'll throw a clearer error
+    // or return a placeholder if we wanted to support "offline" uploads that sync later.
+    console.warn('File upload is not supported in offline/local-only mode.');
+    throw new Error('La carga de archivos requiere conexión a internet y acceso al servidor.');
+  }
 };
