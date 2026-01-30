@@ -92,6 +92,35 @@ export default function ProfilePage() {
   
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const [showReturnModal, setShowReturnModal] = useState(false);
+  const [orderToReturn, setOrderToReturn] = useState<Order | null>(null);
+
+  const handleReturnRequest = (order: Order) => {
+    setOrderToReturn(order);
+    setShowReturnModal(true);
+  };
+
+  const processReturnRequest = () => {
+    if (!orderToReturn) return;
+    
+    // Format message for WhatsApp
+    const message = `Hola, quisiera solicitar una devolución/garantía para el pedido #${orderToReturn.id.slice(0, 8)}.
+    
+Motivo: [Escriba aquí el motivo]
+
+Detalles del pedido:
+Total: ${formatCurrency(orderToReturn.total, currencyLocale, currencyCode)}
+Fecha: ${new Date(orderToReturn.createdAt).toLocaleDateString()}
+`;
+    
+    const phoneNumber = getSetting('contact_whatsapp', import.meta.env.VITE_WHATSAPP_NUMBER || '573000000000');
+    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+    setShowReturnModal(false);
+    setOrderToReturn(null);
+  };
+
 
   const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -115,6 +144,36 @@ export default function ProfilePage() {
         fileInputRef.current.value = '';
       }
     }
+  };
+
+  const handleUpdateProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+
+    try {
+      const updatedUser = {
+        ...user,
+        name,
+        phone,
+        city
+      };
+      
+      await queries.updateUser(updatedUser);
+      setUser(updatedUser);
+      alert('Perfil actualizado correctamente');
+      setShowPersonalForm(false);
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      alert("Error al actualizar el perfil");
+    }
+  };
+
+  const onDelete = async (orderId: string) => {
+    setOrderToDelete(orderId);
+  };
+
+  const onRestore = async (order: Order) => {
+    setOrderToEdit(order);
   };
 
   useEffect(() => {
@@ -405,8 +464,9 @@ export default function ProfilePage() {
                                     order={order}
                                     currencyLocale={currencyLocale}
                                     currencyCode={currencyCode}
-                                    onRestore={(order) => setOrderToEdit(order)}
-                                    onDelete={(orderId) => setOrderToDelete(orderId)}
+                                    onRestore={onRestore}
+                                    onDelete={onDelete}
+                                    onReturnRequest={handleReturnRequest}
                                 />
                             ))}
                         </div>
@@ -419,15 +479,7 @@ export default function ProfilePage() {
                     <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Información Personal</h3>
                     <form
                       className="space-y-4"
-                      onSubmit={(event) => {
-                        event.preventDefault();
-                        if (user) {
-                          const updatedUser = { ...user, name, phone, city };
-                          queries.updateUser(updatedUser);
-                          setUser(updatedUser);
-                          setShowPersonalForm(false);
-                        }
-                      }}
+                      onSubmit={handleUpdateProfile}
                     >
                       <div className="space-y-1">
                         <label className="block text-xs font-medium text-slate-600 dark:text-slate-300">
@@ -623,22 +675,67 @@ export default function ProfilePage() {
           </div>
         </div>
       )}
+
+      {/* Return Request Modal */}
+      {showReturnModal && orderToReturn && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-xl w-full max-w-sm p-6 space-y-4 animate-in zoom-in-95 duration-200">
+            <div className="text-center space-y-2">
+              <div className="w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mx-auto mb-4">
+                <span className="material-symbols-outlined text-amber-600 dark:text-amber-400 text-2xl">assignment_return</span>
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">Solicitar Devolución</h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                Serás redirigido a WhatsApp para procesar tu solicitud de devolución o garantía para el pedido #{orderToReturn.id.slice(-8).toUpperCase()}.
+              </p>
+            </div>
+            <div className="flex gap-3 pt-2">
+              <button
+                onClick={() => {
+                  setShowReturnModal(false);
+                  setOrderToReturn(null);
+                }}
+                className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-zinc-700 text-slate-700 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors text-sm"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={processReturnRequest}
+                className="flex-1 px-4 py-2.5 rounded-xl bg-green-600 text-white font-medium hover:bg-green-700 transition-colors text-sm shadow-sm shadow-green-200 dark:shadow-none flex items-center justify-center gap-2"
+              >
+                <span className="material-symbols-outlined text-[18px]">chat</span>
+                WhatsApp
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
+const canEditOrDelete = (status: string) => {
+  return ['pending', 'on_hold', 'received'].includes(status);
+};
+
+const canRequestReturn = (status: string) => {
+  return ['delivered', 'completed'].includes(status);
+};
 
 const OrderItem = ({ 
   order, 
   currencyLocale, 
   currencyCode, 
   onRestore, 
-  onDelete 
+  onDelete,
+  onReturnRequest
 }: { 
   order: Order; 
   currencyLocale: string; 
   currencyCode: string; 
   onRestore: (order: Order) => void; 
-  onDelete: (orderId: string) => void; 
+  onDelete: (orderId: string) => void;
+  onReturnRequest: (order: Order) => void;
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const itemCount = order.items?.reduce((acc, item) => acc + item.quantity, 0) || 0;
@@ -721,28 +818,45 @@ const OrderItem = ({
                 ))}
             </div>
 
-            <div className="flex gap-2">
-                <button
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        onRestore(order);
-                    }}
-                    className="flex-1 text-xs text-blue-600 hover:text-blue-800 font-medium px-3 py-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors flex items-center justify-center gap-1"
-                >
-                    <span className="material-symbols-outlined text-[16px]">edit</span>
-                    Editar Pedido
-                </button>
-                <button
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        onDelete(order.id);
-                    }}
-                    className="flex-1 text-xs text-red-500 hover:text-red-700 font-medium px-3 py-2 rounded-lg bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors flex items-center justify-center gap-1"
-                >
-                    <span className="material-symbols-outlined text-[16px]">delete</span>
-                    Eliminar
-                </button>
-            </div>
+                {canEditOrDelete(order.status) && (
+                  <div className="flex border-t border-slate-100 dark:border-zinc-800 p-2 gap-2">
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onRestore(order);
+                        }}
+                        className="flex-1 text-xs text-blue-600 hover:text-blue-800 font-medium px-3 py-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors flex items-center justify-center gap-1"
+                    >
+                        <span className="material-symbols-outlined text-[16px]">edit</span>
+                        Editar Pedido
+                    </button>
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onDelete(order.id);
+                        }}
+                        className="flex-1 text-xs text-red-500 hover:text-red-700 font-medium px-3 py-2 rounded-lg bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors flex items-center justify-center gap-1"
+                    >
+                        <span className="material-symbols-outlined text-[16px]">delete</span>
+                        Eliminar
+                    </button>
+                  </div>
+                )}
+                
+                {canRequestReturn(order.status) && (
+                   <div className="flex border-t border-slate-100 dark:border-zinc-800 p-2 gap-2">
+                     <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onReturnRequest(order);
+                        }}
+                        className="flex-1 text-xs text-amber-600 hover:text-amber-800 font-medium px-3 py-2 rounded-lg bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors flex items-center justify-center gap-1"
+                    >
+                        <span className="material-symbols-outlined text-[16px]">assignment_return</span>
+                        Solicitar Devolución
+                    </button>
+                   </div>
+                )}
         </div>
       </div>
     </div>

@@ -42,7 +42,7 @@ const INITIAL_SEED_STORE_SETTINGS = [
   { key: 'currency_code', value: 'COP', description: 'Código de moneda ISO 4217' },
   { key: 'currency_locale', value: 'es-CO', description: 'Locale para formato de moneda' },
   { key: 'primary_color', value: '#3270a9', description: 'Color principal de la marca' },
-  { key: 'contact_whatsapp', value: '+573000000000', description: 'Número de WhatsApp para pedidos' }
+  { key: 'contact_whatsapp', value: import.meta.env.VITE_WHATSAPP_NUMBER || '573000000000', description: 'Número de WhatsApp para pedidos' }
 ];
 
 const INITIAL_SEED_BANNERS = [
