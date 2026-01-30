@@ -9,6 +9,7 @@ import { formatCurrency } from '../utils/currency';
 import { PROFILE_SECTIONS } from '../constants/ui';
 import type { User, Order, PaymentMethod } from '../types';
 
+
 export default function ProfilePage() {
   const { queries } = useDatabase();
   const { clearCart, restoreCart } = useCart();
@@ -77,7 +78,7 @@ export default function ProfilePage() {
     }
   }, [isDarkMode]);
 
-  // Update local state when user is loaded
+  // Update local state when user is loaded.
   useEffect(() => {
     if (user) {
       setName(user.name || '');
@@ -846,7 +847,7 @@ const OrderItem = ({
                 {canRequestReturn(order.status) && (
                    <div className="flex border-t border-slate-100 dark:border-zinc-800 p-2 gap-2">
                      <button
-                        onClick={(e) => {
+                        onClick={(e) => { 
                             e.stopPropagation();
                             onReturnRequest(order);
                         }}

@@ -21,8 +21,8 @@ const INITIAL_SEED_PAYMENT_METHODS = [
     id: '1',
     bankName: 'Bancolombia',
     accountType: 'Ahorros',
-    accountNumber: '1234567890',
-    accountHolder: 'Tienda Online S.A.S',
+    accountNumber: 'XXXXXXXXXX',
+    accountHolder: 'Nombre del Titular',
     isActive: 1,
     instructions: 'Enviar comprobante al WhatsApp'
   },
@@ -30,8 +30,8 @@ const INITIAL_SEED_PAYMENT_METHODS = [
     id: '2',
     bankName: 'Nequi',
     accountType: 'Depósito',
-    accountNumber: '3001234567',
-    accountHolder: 'Tienda Online',
+    accountNumber: 'XXXXXXXXXX',
+    accountHolder: 'Nombre del Titular',
     isActive: 1,
     instructions: 'Recuerda poner tu número de pedido en la referencia'
   }
@@ -463,7 +463,7 @@ const seedDB = (database: Database) => {
     ${INITIAL_SEED_PRODUCTS.map(p => `('${p.id}', '${p.sku}', '${p.name}', '${p.description}', ${p.price}, '${p.category}', '${p.image}', '${p.specifications}', ${p.isFeatured}, 1, '[]')`).join(',\n    ')};
 
     INSERT INTO users (id, name, email, password, avatar, phone, city, isActive, role, mustChangePassword) VALUES
-    ('u1', 'Juan Pérez', 'juan.perez@example.com', 'password123', 'https://picsum.photos/seed/user1/100/100', '+34 600 000 000', 'Madrid', 1, 'admin', 0);
+    ('u1', 'Administrador', 'admin@tienda.com', 'admin123', 'https://picsum.photos/seed/user1/100/100', '3000000000', 'Bogotá', 1, 'admin', 0);
 
     INSERT INTO profile_sections (id, icon, title, subtitle, route) VALUES
     ('1', 'person', 'Información Personal', 'Gestiona tus datos personales', '/profile/info'),
