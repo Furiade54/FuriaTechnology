@@ -34,6 +34,8 @@ CREATE TABLE IF NOT EXISTS public.users (
   avatar TEXT,
   phone TEXT,
   city TEXT,
+  address TEXT,
+  "zipCode" TEXT,
   "isActive" BOOLEAN DEFAULT true,
   role TEXT DEFAULT 'user',
   "mustChangePassword" BOOLEAN DEFAULT false,

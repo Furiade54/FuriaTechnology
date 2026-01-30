@@ -8,7 +8,7 @@ const DB_NAME = 'ecommerce_db';
 
 type ProductRow = [string, string, string, string, number, string, string, string, number, number, string | null];
 type CategoryRow = [string, string, string, string];
-type UserRow = [string, string, string, string | null, string | null, string | null, string | null, number, string, number];
+type UserRow = [string, string, string, string | null, string | null, string | null, string | null, number, string, number, string | null, string | null];
 type ProfileSectionRow = [string, string, string, string, string | null];
 type OrderRow = [string, string, number, string, string, string | null];
 type OrderItemRow = [string, string, string, number, number, string, string];
@@ -163,6 +163,24 @@ export const initDB = async () => {
       try {
         db.run("ALTER TABLE users ADD COLUMN mustChangePassword INTEGER DEFAULT 0");
         console.log("Migrated: Added mustChangePassword column to users table");
+        saveDB();
+      } catch (e) {
+        // Column likely already exists, ignore
+      }
+
+      // Migration: Ensure address column exists
+      try {
+        db.run("ALTER TABLE users ADD COLUMN address TEXT");
+        console.log("Migrated: Added address column to users table");
+        saveDB();
+      } catch (e) {
+        // Column likely already exists, ignore
+      }
+
+      // Migration: Ensure zipCode column exists
+      try {
+        db.run("ALTER TABLE users ADD COLUMN zipCode TEXT");
+        console.log("Migrated: Added zipCode column to users table");
         saveDB();
       } catch (e) {
         // Column likely already exists, ignore
@@ -378,7 +396,9 @@ const seedDB = (database: Database) => {
       city TEXT,
       isActive INTEGER DEFAULT 1,
       role TEXT DEFAULT 'user',
-      mustChangePassword INTEGER DEFAULT 0
+      mustChangePassword INTEGER DEFAULT 0,
+      address TEXT,
+      zipCode TEXT
     );
 
     CREATE TABLE IF NOT EXISTS profile_sections (
@@ -462,8 +482,8 @@ const seedDB = (database: Database) => {
     INSERT INTO products (id, sku, name, description, price, category, image, specifications, isFeatured, isActive, images) VALUES
     ${INITIAL_SEED_PRODUCTS.map(p => `('${p.id}', '${p.sku}', '${p.name}', '${p.description}', ${p.price}, '${p.category}', '${p.image}', '${p.specifications}', ${p.isFeatured}, 1, '[]')`).join(',\n    ')};
 
-    INSERT INTO users (id, name, email, password, avatar, phone, city, isActive, role, mustChangePassword) VALUES
-    ('u1', 'Administrador', 'admin@tienda.com', 'admin123', 'https://picsum.photos/seed/user1/100/100', '3000000000', 'Bogotá', 1, 'admin', 0);
+    INSERT INTO users (id, name, email, password, avatar, phone, city, isActive, role, mustChangePassword, address, zipCode) VALUES
+    ('u1', 'Administrador', 'admin@tienda.com', 'admin123', 'https://picsum.photos/seed/user1/100/100', '3000000000', 'Bogotá', 1, 'admin', 0, NULL, NULL);
 
     INSERT INTO profile_sections (id, icon, title, subtitle, route) VALUES
     ('1', 'person', 'Información Personal', 'Gestiona tus datos personales', '/profile/info'),
@@ -624,6 +644,8 @@ export const dbQuery = {
     avatar?: string | null;
     phone?: string | null;
     city?: string | null;
+    address?: string | null;
+    zipCode?: string | null;
     role?: 'user' | 'admin';
     isActive?: boolean;
     mustChangePassword?: boolean;
@@ -638,15 +660,17 @@ export const dbQuery = {
       avatar = null,
       phone = null,
       city = null,
+      address = null,
+      zipCode = null,
       role = 'user',
       isActive = true,
       mustChangePassword = false
     } = payload;
 
     const insertStmt = db.prepare(
-      "INSERT INTO users (id, name, email, password, avatar, phone, city, isActive, role, mustChangePassword) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+      "INSERT INTO users (id, name, email, password, avatar, phone, city, isActive, role, mustChangePassword, address, zipCode) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
     );
-    insertStmt.run([id, name, email, password || null, avatar, phone, city, isActive ? 1 : 0, role, mustChangePassword ? 1 : 0]);
+    insertStmt.run([id, name, email, password || null, avatar, phone, city, isActive ? 1 : 0, role, mustChangePassword ? 1 : 0, address, zipCode]);
     insertStmt.free();
     await saveDB();
 
@@ -658,6 +682,8 @@ export const dbQuery = {
       avatar: avatar ?? undefined,
       phone: phone ?? undefined,
       city: city ?? undefined,
+      address: address ?? undefined,
+      zipCode: zipCode ?? undefined,
       isActive,
       role,
       mustChangePassword
@@ -918,11 +944,14 @@ export const dbQuery = {
   updateUser: async (user: User): Promise<void> => {
     await delay(SIMULATED_LATENCY);
     const db = getDB();
-    const stmt = db.prepare("UPDATE users SET name = ?, phone = ?, city = ? WHERE id = ?");
+    const stmt = db.prepare("UPDATE users SET name = ?, email = ?, phone = ?, city = ?, address = ?, zipCode = ? WHERE id = ?");
     stmt.run([
       user.name,
+      user.email,
       (user.phone ?? null) as SqlValue,
       (user.city ?? null) as SqlValue,
+      (user.address ?? null) as SqlValue,
+      (user.zipCode ?? null) as SqlValue,
       user.id
     ]);
     stmt.free();

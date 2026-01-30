@@ -9,6 +9,7 @@ interface ConfirmationModalProps {
   confirmText?: string;
   cancelText?: string;
   icon?: string;
+  variant?: 'primary' | 'danger';
 }
 
 const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ 
@@ -19,15 +20,22 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   message, 
   confirmText = 'Confirmar', 
   cancelText = 'Cancelar',
-  icon = 'help'
+  icon = 'help',
+  variant = 'primary'
 }) => {
   if (!isOpen) return null;
+
+  const isDanger = variant === 'danger';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" style={{ animation: 'fadeIn 0.2s ease-out' }}>
       <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-xl w-full max-w-sm p-6 transform transition-all" style={{ animation: 'scaleIn 0.2s ease-out' }}>
         <div className="flex flex-col items-center text-center">
-          <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mb-4 text-primary">
+          <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-4 ${
+            isDanger 
+              ? 'bg-red-100 dark:bg-red-900/30 text-red-500' 
+              : 'bg-blue-100 dark:bg-blue-900/30 text-primary'
+          }`}>
             <span className="material-symbols-outlined text-2xl">{icon}</span>
           </div>
           <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
@@ -45,7 +53,11 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
             </button>
             <button
               onClick={onConfirm}
-              className="flex-1 px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-primary hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/20"
+              className={`flex-1 px-4 py-2.5 rounded-xl text-sm font-medium text-white transition-colors shadow-lg ${
+                isDanger
+                  ? 'bg-red-500 hover:bg-red-600 shadow-red-500/20'
+                  : 'bg-primary hover:bg-blue-700 shadow-blue-500/20'
+              }`}
             >
               {confirmText}
             </button>

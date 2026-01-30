@@ -14,6 +14,10 @@ export default function LoginPage() {
   const [tempUserId, setTempUserId] = useState<string | null>(null);
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
 
   const handleChangePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,27 +57,49 @@ export default function LoginPage() {
               <label className="block text-sm font-medium text-slate-600 dark:text-slate-300">
                 Nueva Contraseña
               </label>
-              <input
-                type="password"
-                value={newPassword}
-                onChange={(event) => setNewPassword(event.target.value)}
-                className="w-full rounded-xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-900 px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
-                placeholder="••••••••"
-                required
-              />
+              <div className="relative">
+                <input
+                  type={showNewPassword ? "text" : "password"}
+                  value={newPassword}
+                  onChange={(event) => setNewPassword(event.target.value)}
+                  className="w-full rounded-xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-900 px-3 py-2 pr-10 text-sm text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
+                  placeholder="••••••••"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowNewPassword(!showNewPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                >
+                  <span className="material-symbols-outlined text-[20px]">
+                    {showNewPassword ? 'visibility' : 'visibility_off'}
+                  </span>
+                </button>
+              </div>
             </div>
             <div className="space-y-1">
               <label className="block text-sm font-medium text-slate-600 dark:text-slate-300">
                 Confirmar Nueva Contraseña
               </label>
-              <input
-                type="password"
-                value={confirmNewPassword}
-                onChange={(event) => setConfirmNewPassword(event.target.value)}
-                className="w-full rounded-xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-900 px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
-                placeholder="••••••••"
-                required
-              />
+              <div className="relative">
+                <input
+                  type={showConfirmNewPassword ? "text" : "password"}
+                  value={confirmNewPassword}
+                  onChange={(event) => setConfirmNewPassword(event.target.value)}
+                  className="w-full rounded-xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-900 px-3 py-2 pr-10 text-sm text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
+                  placeholder="••••••••"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmNewPassword(!showConfirmNewPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                >
+                  <span className="material-symbols-outlined text-[20px]">
+                    {showConfirmNewPassword ? 'visibility' : 'visibility_off'}
+                  </span>
+                </button>
+              </div>
             </div>
             {error && (
               <p className="text-xs text-red-500">
@@ -182,14 +208,25 @@ export default function LoginPage() {
             <label className="block text-sm font-medium text-slate-600 dark:text-slate-300">
               Contraseña
             </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              className="w-full rounded-xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-900 px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
-              placeholder="••••••••"
-              required
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                className="w-full rounded-xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-900 px-3 py-2 pr-10 text-sm text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
+                placeholder="••••••••"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+              >
+                <span className="material-symbols-outlined text-[20px]">
+                  {showPassword ? 'visibility' : 'visibility_off'}
+                </span>
+              </button>
+            </div>
           </div>
 
           {isRegister && (
@@ -197,14 +234,25 @@ export default function LoginPage() {
               <label className="block text-sm font-medium text-slate-600 dark:text-slate-300">
                 Confirmar contraseña
               </label>
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={(event) => setConfirmPassword(event.target.value)}
-                className="w-full rounded-xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-900 px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
-                placeholder="Repite la contraseña"
-                required
-              />
+              <div className="relative">
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={(event) => setConfirmPassword(event.target.value)}
+                  className="w-full rounded-xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-900 px-3 py-2 pr-10 text-sm text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
+                  placeholder="Repite la contraseña"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                >
+                  <span className="material-symbols-outlined text-[20px]">
+                    {showConfirmPassword ? 'visibility' : 'visibility_off'}
+                  </span>
+                </button>
+              </div>
             </div>
           )}
 

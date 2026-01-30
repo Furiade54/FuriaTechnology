@@ -183,6 +183,8 @@ export const supabaseQueries = {
       avatar: data.avatar,
       phone: data.phone,
       city: data.city,
+      address: data.address,
+      zipCode: data.zipCode,
       isActive: data.isActive,
       role: data.role,
       mustChangePassword: data.mustChangePassword
@@ -204,6 +206,8 @@ export const supabaseQueries = {
       avatar: row.avatar,
       phone: row.phone,
       city: row.city,
+      address: row.address,
+      zipCode: row.zipCode,
       isActive: row.isActive,
       role: row.role,
       mustChangePassword: row.mustChangePassword
@@ -247,6 +251,8 @@ export const supabaseQueries = {
       avatar: null,
       phone: null,
       city: null,
+      address: null,
+      zipCode: null,
       isActive: true,
       role: 'user',
       mustChangePassword: false
@@ -259,7 +265,9 @@ export const supabaseQueries = {
       ...newUser,
       avatar: undefined,
       phone: undefined,
-      city: undefined
+      city: undefined,
+      address: undefined,
+      zipCode: undefined
     } as User;
   },
 
@@ -270,6 +278,8 @@ export const supabaseQueries = {
     avatar?: string | null;
     phone?: string | null;
     city?: string | null;
+    address?: string | null;
+    zipCode?: string | null;
     role?: 'user' | 'admin';
     isActive?: boolean;
     mustChangePassword?: boolean;
@@ -282,6 +292,8 @@ export const supabaseQueries = {
       avatar = null,
       phone = null,
       city = null,
+      address = null,
+      zipCode = null,
       role = 'user',
       isActive = true,
       mustChangePassword = false
@@ -295,6 +307,8 @@ export const supabaseQueries = {
       avatar,
       phone,
       city,
+      address,
+      zipCode,
       isActive,
       role,
       mustChangePassword
@@ -311,6 +325,8 @@ export const supabaseQueries = {
       avatar: avatar ?? undefined,
       phone: phone ?? undefined,
       city: city ?? undefined,
+      address: address ?? undefined,
+      zipCode: zipCode ?? undefined,
       isActive,
       role,
       mustChangePassword
@@ -337,6 +353,8 @@ export const supabaseQueries = {
       avatar: data.avatar,
       phone: data.phone,
       city: data.city,
+      address: data.address,
+      zipCode: data.zipCode,
       isActive: data.isActive,
       role: data.role,
       mustChangePassword: data.mustChangePassword
@@ -350,6 +368,8 @@ export const supabaseQueries = {
         name: user.name,
         phone: user.phone,
         city: user.city,
+        address: user.address,
+        zipCode: user.zipCode,
         avatar: user.avatar,
         email: user.email
       })
@@ -366,6 +386,8 @@ export const supabaseQueries = {
         email: user.email,
         phone: user.phone,
         city: user.city,
+        address: user.address,
+        zipCode: user.zipCode,
         avatar: user.avatar,
         isActive: user.isActive,
         role: user.role,

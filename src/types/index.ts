@@ -42,6 +42,8 @@ export interface User {
   avatar?: string;
   phone?: string;
   city?: string;
+  address?: string;
+  zipCode?: string;
   isActive?: boolean;
   role?: 'user' | 'admin';
   mustChangePassword?: boolean;
