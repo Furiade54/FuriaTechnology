@@ -725,7 +725,7 @@ const AdminDashboardPage: React.FC = () => {
     try {
       setUploadingLogo(true);
       // @ts-ignore - dynamic method added to queries
-      const url = await queries.uploadFile(file, 'settings');
+      const url = await queries.uploadFile(file, 'company-assets');
       setSettingsForm({ ...settingsForm, logo_url: url });
     } catch (error) {
       console.error("Error uploading logo:", error);
