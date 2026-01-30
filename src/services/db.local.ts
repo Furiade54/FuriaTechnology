@@ -1455,7 +1455,7 @@ export const dbQuery = {
   },
 
   // Storage (Mock)
-  uploadFile: async (file: File, bucket: string = 'settings'): Promise<string> => {
+  uploadFile: async (_file: File, _bucket: string = 'settings'): Promise<string> => {
     // In a real local-first app, we might save the file to IndexedDB/Blob storage.
     // For now, since we rely on Supabase Storage for public URLs, we'll throw a clearer error
     // or return a placeholder if we wanted to support "offline" uploads that sync later.
