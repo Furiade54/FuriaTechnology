@@ -181,7 +181,7 @@ export default function ProfilePage() {
               disabled={isUploadingAvatar}
               aria-label="Cambiar foto de perfil"
             >
-              <span className="material-symbols-outlined text-sm">photo_camera</span>
+              <span className="material-symbols-outlined text-sm">edit</span>
             </button>
             <input 
               type="file" 
