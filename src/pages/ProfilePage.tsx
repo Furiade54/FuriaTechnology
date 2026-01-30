@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useDatabase } from '../context/DatabaseContext';
 import { useCart } from '../context/CartContext';
@@ -89,6 +89,33 @@ export default function ProfilePage() {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [city, setCity] = useState('');
+  
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+
+    try {
+      setIsUploadingAvatar(true);
+      // @ts-ignore - dynamic method added to queries
+      const url = await queries.uploadFile(file, 'company-assets');
+      
+      const updatedUser = { ...user, avatar: url };
+      await queries.updateUser(updatedUser);
+      setUser(updatedUser);
+    } catch (error) {
+      console.error("Error uploading avatar:", error);
+      alert("Error al subir el avatar. Inténtalo de nuevo.");
+    } finally {
+      setIsUploadingAvatar(false);
+      // Reset input value to allow selecting the same file again if needed
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
 
   useEffect(() => {
     if (user) {
@@ -129,18 +156,40 @@ export default function ProfilePage() {
 
       <div className="p-4 space-y-6">
         <div className="flex flex-col items-center gap-4 py-6">
-          <div className="w-24 h-24 rounded-full bg-slate-200 dark:bg-zinc-800 overflow-hidden border-4 border-white dark:border-zinc-700 shadow-sm flex items-center justify-center">
-            {user.avatar ? (
-              <img 
-                src={user.avatar}
-                alt="Avatar de Usuario" 
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <span className="text-4xl font-bold text-slate-400 dark:text-slate-500 uppercase">
-                {user.name.charAt(0)}
-              </span>
-            )}
+          <div className="relative">
+            <div className="w-24 h-24 rounded-full bg-slate-200 dark:bg-zinc-800 overflow-hidden border-4 border-white dark:border-zinc-700 shadow-sm flex items-center justify-center relative">
+              {user.avatar ? (
+                <img 
+                  src={user.avatar}
+                  alt="Avatar de Usuario" 
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="text-4xl font-bold text-slate-400 dark:text-slate-500 uppercase">
+                  {user.name.charAt(0)}
+                </span>
+              )}
+              {isUploadingAvatar && (
+                <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-10">
+                  <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-white"></div>
+                </div>
+              )}
+            </div>
+            <button 
+              className="absolute bottom-0 right-0 p-1.5 bg-primary text-white rounded-full shadow-lg hover:bg-primary/90 transition-colors z-20"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploadingAvatar}
+              aria-label="Cambiar foto de perfil"
+            >
+              <span className="material-symbols-outlined text-sm">photo_camera</span>
+            </button>
+            <input 
+              type="file" 
+              ref={fileInputRef}
+              className="hidden" 
+              accept="image/*"
+              onChange={handleAvatarUpload}
+            />
           </div>
           <div className="text-center">
             <h2 className="text-xl font-bold text-slate-900 dark:text-white">{user.name}</h2>
