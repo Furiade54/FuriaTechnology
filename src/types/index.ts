@@ -7,6 +7,7 @@ export interface Product {
   category: string;
   image: string;
   images?: string[];
+  brand?: string;
   specifications: Record<string, string>;
   isFeatured?: boolean;
   isActive?: boolean;

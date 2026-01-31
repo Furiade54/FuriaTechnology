@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useDatabase } from '../context/DatabaseContext';
 import ProductCard from '../components/ProductCard';
 import CategoryChips from '../components/CategoryChips';
+import BrandChips from '../components/BrandChips';
 import type { Product } from '../types';
 
 const ProductListPage: React.FC = () => {
@@ -10,6 +11,7 @@ const ProductListPage: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [searchParams] = useSearchParams();
   const categoryFilter = searchParams.get('category');
+  const brandFilter = searchParams.get('brand');
   const initialSearchQuery = searchParams.get('search') || '';
   const navigate = useNavigate();
   const [isFilterOpen, setIsFilterOpen] = React.useState(false);
@@ -46,10 +48,26 @@ const ProductListPage: React.FC = () => {
     fetchProducts();
   }, [queries]);
 
-  const filteredProducts = React.useMemo(() => {
-    let result = categoryFilter
+  const productsInCategory = React.useMemo(() => {
+    return categoryFilter
       ? products.filter(p => p.category === categoryFilter)
-      : [...products];
+      : products;
+  }, [categoryFilter, products]);
+
+  const availableBrands = React.useMemo(() => {
+    const brands = new Set<string>();
+    productsInCategory.forEach(p => {
+      if (p.brand) brands.add(p.brand);
+    });
+    return Array.from(brands).sort();
+  }, [productsInCategory]);
+
+  const filteredProducts = React.useMemo(() => {
+    let result = [...productsInCategory];
+
+    if (brandFilter) {
+      result = result.filter(p => p.brand === brandFilter);
+    }
 
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
@@ -153,6 +171,13 @@ const ProductListPage: React.FC = () => {
         <div className="pb-2">
           <CategoryChips showTitle={false} />
         </div>
+
+        {/* Brand Chips */}
+        {availableBrands.length > 0 && (
+          <div className="pb-2">
+            <BrandChips brands={availableBrands} />
+          </div>
+        )}
       </div>
       
       <div className="p-4 grid grid-cols-2 gap-4">

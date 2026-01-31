@@ -97,6 +97,7 @@ const AdminDashboardPage: React.FC = () => {
     description: '',
     price: 0,
     category: '',
+    brand: '',
     image: '',
     specifications: {},
     isFeatured: false,
@@ -328,6 +329,7 @@ const AdminDashboardPage: React.FC = () => {
         description: productForm.description || '',
         price: Number(productForm.price),
         category: productForm.category || 'General',
+        brand: productForm.brand || '',
         image: productForm.image || (productForm.images && productForm.images.length > 0 ? productForm.images[0] : ''),
         images: productForm.images || [],
         specifications: specifications,
@@ -335,7 +337,7 @@ const AdminDashboardPage: React.FC = () => {
         isActive: productForm.isActive
       });
       setIsAddingProduct(false);
-      setProductForm({ sku: '', name: '', description: '', price: 0, category: '', image: '', specifications: {}, isFeatured: false, isActive: true, images: [] });
+      setProductForm({ sku: '', name: '', description: '', price: 0, category: '', brand: '', image: '', specifications: {}, isFeatured: false, isActive: true, images: [] });
       setTempSpecs([]);
       refreshData();
     } catch (error) {
@@ -365,6 +367,7 @@ const AdminDashboardPage: React.FC = () => {
         description: productForm.description || '',
         price: Number(productForm.price),
         category: productForm.category || '',
+        brand: productForm.brand || '',
         image: productForm.image || (productForm.images && productForm.images.length > 0 ? productForm.images[0] : ''),
         images: productForm.images || [],
         specifications: specifications,
@@ -372,7 +375,7 @@ const AdminDashboardPage: React.FC = () => {
         isActive: productForm.isActive
       });
       setEditingProductId(null);
-      setProductForm({ sku: '', name: '', description: '', price: 0, category: '', image: '', specifications: {}, isFeatured: false, isActive: true, images: [] });
+      setProductForm({ sku: '', name: '', description: '', price: 0, category: '', brand: '', image: '', specifications: {}, isFeatured: false, isActive: true, images: [] });
       setTempSpecs([]);
       refreshData();
     } catch (error) {
@@ -445,6 +448,7 @@ const AdminDashboardPage: React.FC = () => {
         const description = getValue('description') || '';
         const price = parseFloat(getValue('price') || '0');
         const category = getValue('category') || '';
+        const brand = getValue('brand') || '';
         const image = getValue('image') || '';
         
         let specifications = {};
@@ -478,6 +482,7 @@ const AdminDashboardPage: React.FC = () => {
             description,
             price,
             category,
+            brand,
             image,
             specifications,
             isFeatured,
@@ -521,7 +526,7 @@ const AdminDashboardPage: React.FC = () => {
 
   const handleDownloadCSV = () => {
     // Define headers
-    const headers = ['ID', 'SKU', 'Name', 'Description', 'Price', 'Category', 'Image', 'Images', 'Specifications', 'IsFeatured', 'IsActive'];
+    const headers = ['ID', 'SKU', 'Name', 'Description', 'Price', 'Category', 'Brand', 'Image', 'Images', 'Specifications', 'IsFeatured', 'IsActive'];
     
     // Convert products to CSV rows
     const rows = products.map(product => [
@@ -531,6 +536,7 @@ const AdminDashboardPage: React.FC = () => {
       `"${(product.description || '').replace(/"/g, '""')}"`,
       product.price,
       `"${(product.category || '').replace(/"/g, '""')}"`,
+      `"${(product.brand || '').replace(/"/g, '""')}"`,
       `"${(product.image || '').replace(/"/g, '""')}"`,
       `"${(JSON.stringify(product.images || [])).replace(/"/g, '""')}"`,
       `"${(JSON.stringify(product.specifications || {})).replace(/"/g, '""')}"`,
@@ -1545,6 +1551,7 @@ const AdminDashboardPage: React.FC = () => {
                               <option key={cat.id} value={cat.name}>{cat.name}</option>
                             ))}
                           </select>
+                          <input className="px-3 py-2 rounded-lg bg-slate-50 dark:bg-zinc-800 text-sm" placeholder="Marca" value={productForm.brand || ''} onChange={(e) => setProductForm({ ...productForm, brand: e.target.value })} />
                           <div className="col-span-1 sm:col-span-2 space-y-2">
                             <label className="text-sm font-medium text-slate-900 dark:text-white">Imágenes</label>
                             <div className="space-y-2">

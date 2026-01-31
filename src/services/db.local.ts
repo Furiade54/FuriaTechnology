@@ -6,7 +6,7 @@ import type { Product, Category, User, ProfileSection, Order, Banner, PaymentMet
 let db: Database | null = null;
 const DB_NAME = 'ecommerce_db';
 
-type ProductRow = [string, string, string, string, number, string, string, string, number, number, string | null];
+type ProductRow = [string, string, string, string, number, string, string, string, number, number, string | null, string | null];
 type CategoryRow = [string, string, string, string];
 type UserRow = [string, string, string, string | null, string | null, string | null, string | null, number, string, number, string | null, string | null];
 type ProfileSectionRow = [string, string, string, string, string | null];
@@ -84,40 +84,40 @@ const INITIAL_SEED_CATEGORIES = [
 
 const INITIAL_SEED_PRODUCTS = [
   // Celulares y Tables
-  { id: '101', sku: 'CEL-001', name: 'iPhone 15 Pro', description: 'El último iPhone con chip A17 Pro y diseño de titanio.', price: 4000000, category: 'Celulares y Tables', image: 'https://picsum.photos/seed/iphone15/400/400', specifications: '{"Marca": "Apple", "Almacenamiento": "256GB"}', isFeatured: 1 },
-  { id: '102', sku: 'TAB-001', name: 'Samsung Galaxy Tab S9', description: 'Tablet Android de alto rendimiento con S Pen incluido.', price: 3200000, category: 'Celulares y Tables', image: 'https://picsum.photos/seed/tabs9/400/400', specifications: '{"Marca": "Samsung", "Pantalla": "11 pulgadas"}', isFeatured: 1 },
+  { id: '101', sku: 'CEL-001', name: 'iPhone 15 Pro', description: 'El último iPhone con chip A17 Pro y diseño de titanio.', price: 4000000, category: 'Celulares y Tables', image: 'https://picsum.photos/seed/iphone15/400/400', specifications: '{"Almacenamiento": "256GB"}', brand: 'Apple', isFeatured: 1 },
+  { id: '102', sku: 'TAB-001', name: 'Samsung Galaxy Tab S9', description: 'Tablet Android de alto rendimiento con S Pen incluido.', price: 3200000, category: 'Celulares y Tables', image: 'https://picsum.photos/seed/tabs9/400/400', specifications: '{"Pantalla": "11 pulgadas"}', brand: 'Samsung', isFeatured: 1 },
   
   // Computadores
-  { id: '201', sku: 'LAP-001', name: 'MacBook Air M2', description: 'Potencia y portabilidad con el chip M2 de Apple.', price: 4800000, category: 'Computadores', image: 'https://picsum.photos/seed/macbook/400/400', specifications: '{"Marca": "Apple", "Procesador": "M2", "RAM": "8GB"}', isFeatured: 1 },
-  { id: '202', sku: 'PC-001', name: 'Dell XPS 15', description: 'Laptop premium con pantalla InfinityEdge y alto rendimiento.', price: 6000000, category: 'Computadores', image: 'https://picsum.photos/seed/dellxps/400/400', specifications: '{"Marca": "Dell", "Procesador": "Intel i7", "RAM": "16GB"}', isFeatured: 0 },
+  { id: '201', sku: 'LAP-001', name: 'MacBook Air M2', description: 'Potencia y portabilidad con el chip M2 de Apple.', price: 4800000, category: 'Computadores', image: 'https://picsum.photos/seed/macbook/400/400', specifications: '{"Procesador": "M2", "RAM": "8GB"}', brand: 'Apple', isFeatured: 1 },
+  { id: '202', sku: 'PC-001', name: 'Dell XPS 15', description: 'Laptop premium con pantalla InfinityEdge y alto rendimiento.', price: 6000000, category: 'Computadores', image: 'https://picsum.photos/seed/dellxps/400/400', specifications: '{"Procesador": "Intel i7", "RAM": "16GB"}', brand: 'Dell', isFeatured: 0 },
 
   // Impresoras Scaners
-  { id: '301', sku: 'IMP-001', name: 'Epson EcoTank L3250', description: 'Impresora multifuncional con sistema de tanque de tinta.', price: 920000, category: 'Impresoras Scaners', image: 'https://picsum.photos/seed/epson/400/400', specifications: '{"Marca": "Epson", "Tipo": "Inyección de tinta"}', isFeatured: 0 },
+  { id: '301', sku: 'IMP-001', name: 'Epson EcoTank L3250', description: 'Impresora multifuncional con sistema de tanque de tinta.', price: 920000, category: 'Impresoras Scaners', image: 'https://picsum.photos/seed/epson/400/400', specifications: '{"Tipo": "Inyección de tinta"}', brand: 'Epson', isFeatured: 0 },
   
   // Redes
-  { id: '401', sku: 'NET-001', name: 'TP-Link Archer AX50', description: 'Router Wi-Fi 6 de doble banda para alta velocidad.', price: 520000, category: 'Redes', image: 'https://picsum.photos/seed/router/400/400', specifications: '{"Marca": "TP-Link", "Velocidad": "AX3000"}', isFeatured: 0 },
+  { id: '401', sku: 'NET-001', name: 'TP-Link Archer AX50', description: 'Router Wi-Fi 6 de doble banda para alta velocidad.', price: 520000, category: 'Redes', image: 'https://picsum.photos/seed/router/400/400', specifications: '{"Velocidad": "AX3000"}', brand: 'TP-Link', isFeatured: 0 },
   
   // Perifericos
-  { id: '501', sku: 'PER-001', name: 'Logitech MX Master 3S', description: 'El ratón de productividad definitivo con clic silencioso.', price: 400000, category: 'Perifericos', image: 'https://picsum.photos/seed/mouse/400/400', specifications: '{"Marca": "Logitech", "Conexión": "Bluetooth"}', isFeatured: 1 },
-  { id: '502', sku: 'PER-002', name: 'Teclado Keychron K2', description: 'Teclado mecánico inalámbrico compacto.', price: 360000, category: 'Perifericos', image: 'https://picsum.photos/seed/keyboard/400/400', specifications: '{"Marca": "Keychron", "Switch": "Brown"}', isFeatured: 0 },
+  { id: '501', sku: 'PER-001', name: 'Logitech MX Master 3S', description: 'El ratón de productividad definitivo con clic silencioso.', price: 400000, category: 'Perifericos', image: 'https://picsum.photos/seed/mouse/400/400', specifications: '{"Conexión": "Bluetooth"}', brand: 'Logitech', isFeatured: 1 },
+  { id: '502', sku: 'PER-002', name: 'Teclado Keychron K2', description: 'Teclado mecánico inalámbrico compacto.', price: 360000, category: 'Perifericos', image: 'https://picsum.photos/seed/keyboard/400/400', specifications: '{"Switch": "Brown"}', brand: 'Keychron', isFeatured: 0 },
 
   // Almacenamiento
-  { id: '601', sku: 'STO-001', name: 'Samsung T7 Shield 1TB', description: 'SSD portátil resistente y rápido.', price: 440000, category: 'Almacenamiento', image: 'https://picsum.photos/seed/ssd/400/400', specifications: '{"Marca": "Samsung", "Capacidad": "1TB"}', isFeatured: 1 },
+  { id: '601', sku: 'STO-001', name: 'Samsung T7 Shield 1TB', description: 'SSD portátil resistente y rápido.', price: 440000, category: 'Almacenamiento', image: 'https://picsum.photos/seed/ssd/400/400', specifications: '{"Capacidad": "1TB"}', brand: 'Samsung', isFeatured: 1 },
   
   // Pantalla y Televisores
-  { id: '701', sku: 'MON-001', name: 'LG UltraGear 27"', description: 'Monitor gaming con 144Hz y 1ms de respuesta.', price: 1200000, category: 'Pantalla y Televisores', image: 'https://picsum.photos/seed/monitor/400/400', specifications: '{"Marca": "LG", "Resolución": "QHD"}', isFeatured: 1 },
+  { id: '701', sku: 'MON-001', name: 'LG UltraGear 27"', description: 'Monitor gaming con 144Hz y 1ms de respuesta.', price: 1200000, category: 'Pantalla y Televisores', image: 'https://picsum.photos/seed/monitor/400/400', specifications: '{"Resolución": "QHD"}', brand: 'LG', isFeatured: 1 },
   
   // Dispositivos de Sonido
-  { id: '801', sku: 'AUD-001', name: 'Sony WH-1000XM5', description: 'Auriculares con la mejor cancelación de ruido del mercado.', price: 1400000, category: 'Dispositivos de Sonido', image: 'https://picsum.photos/seed/sonywh/400/400', specifications: '{"Marca": "Sony", "Batería": "30h"}', isFeatured: 1 },
+  { id: '801', sku: 'AUD-001', name: 'Sony WH-1000XM5', description: 'Auriculares con la mejor cancelación de ruido del mercado.', price: 1400000, category: 'Dispositivos de Sonido', image: 'https://picsum.photos/seed/sonywh/400/400', specifications: '{"Batería": "30h"}', brand: 'Sony', isFeatured: 1 },
   
   // Componentes
-  { id: '901', sku: 'CMP-001', name: 'AMD Ryzen 7 7800X3D', description: 'El mejor procesador para gaming.', price: 1800000, category: 'Componentes', image: 'https://picsum.photos/seed/ryzen/400/400', specifications: '{"Marca": "AMD", "Núcleos": "8"}', isFeatured: 1 },
+  { id: '901', sku: 'CMP-001', name: 'AMD Ryzen 7 7800X3D', description: 'El mejor procesador para gaming.', price: 1800000, category: 'Componentes', image: 'https://picsum.photos/seed/ryzen/400/400', specifications: '{"Núcleos": "8"}', brand: 'AMD', isFeatured: 1 },
   
   // Dispositivos de carga
-  { id: '1001', sku: 'PWR-001', name: 'Anker 737 Power Bank', description: 'Batería externa de alta capacidad con carga rápida.', price: 600000, category: 'Dispositivos de carga', image: 'https://picsum.photos/seed/anker/400/400', specifications: '{"Marca": "Anker", "Capacidad": "24000mAh"}', isFeatured: 0 },
+  { id: '1001', sku: 'PWR-001', name: 'Anker 737 Power Bank', description: 'Batería externa de alta capacidad con carga rápida.', price: 600000, category: 'Dispositivos de carga', image: 'https://picsum.photos/seed/anker/400/400', specifications: '{"Capacidad": "24000mAh"}', brand: 'Anker', isFeatured: 0 },
   
   // Morrales
-  { id: '1101', sku: 'BAG-001', name: 'Mochila Antirrobo', description: 'Mochila impermeable con puerto de carga USB.', price: 185000, category: 'Morrales', image: 'https://picsum.photos/seed/backpack/400/400', specifications: '{"Marca": "Generic", "Color": "Gris"}', isFeatured: 0 }
+  { id: '1101', sku: 'BAG-001', name: 'Mochila Antirrobo', description: 'Mochila impermeable con puerto de carga USB.', price: 185000, category: 'Morrales', image: 'https://picsum.photos/seed/backpack/400/400', specifications: '{"Color": "Gris"}', brand: 'Generic', isFeatured: 0 }
 ];
 
 
@@ -202,6 +202,29 @@ export const initDB = async () => {
         saveDB();
       } catch (e) {
         // Column likely already exists, ignore
+      }
+
+      // Migration: Ensure brand column exists for products and backfill
+      try {
+        try {
+            db.run("ALTER TABLE products ADD COLUMN brand TEXT");
+            console.log("Migrated: Added brand column to products table");
+        } catch (e) {
+            // Column likely exists
+        }
+        
+        // Backfill brands from seed data
+        const updateBrand = db.prepare("UPDATE products SET brand = ? WHERE id = ?");
+        INITIAL_SEED_PRODUCTS.forEach(p => {
+            if (p.brand) {
+                updateBrand.run([p.brand, p.id]);
+            }
+        });
+        updateBrand.free();
+        console.log("Migrated: Backfilled brands for products");
+        saveDB();
+      } catch (e) {
+        console.error("Migration brand failed", e);
       }
 
       // Migration: Ensure orders tables exist
@@ -376,7 +399,8 @@ const seedDB = (database: Database) => {
       specifications TEXT,
       isFeatured INTEGER,
       isActive INTEGER DEFAULT 1,
-      images TEXT
+      images TEXT,
+      brand TEXT
     );
     
     CREATE TABLE IF NOT EXISTS categories (
@@ -479,8 +503,8 @@ const seedDB = (database: Database) => {
     INSERT INTO payment_methods (id, bankName, accountType, accountNumber, accountHolder, phone, email, isActive, instructions) VALUES
     ${INITIAL_SEED_PAYMENT_METHODS.map(m => `('${m.id}', '${m.bankName}', '${m.accountType}', '${m.accountNumber}', '${m.accountHolder}', NULL, NULL, ${m.isActive}, '${m.instructions}')`).join(',\n    ')};
 
-    INSERT INTO products (id, sku, name, description, price, category, image, specifications, isFeatured, isActive, images) VALUES
-    ${INITIAL_SEED_PRODUCTS.map(p => `('${p.id}', '${p.sku}', '${p.name}', '${p.description}', ${p.price}, '${p.category}', '${p.image}', '${p.specifications}', ${p.isFeatured}, 1, '[]')`).join(',\n    ')};
+    INSERT INTO products (id, sku, name, description, price, category, image, specifications, isFeatured, isActive, images, brand) VALUES
+    ${INITIAL_SEED_PRODUCTS.map(p => `('${p.id}', '${p.sku}', '${p.name}', '${p.description}', ${p.price}, '${p.category}', '${p.image}', '${p.specifications}', ${p.isFeatured}, 1, '[]', '${p.brand || ''}')`).join(',\n    ')};
 
     INSERT INTO users (id, name, email, password, avatar, phone, city, isActive, role, mustChangePassword, address, zipCode) VALUES
     ('u1', 'Administrador', 'admin@tienda.com', 'admin123', 'https://picsum.photos/seed/user1/100/100', '3000000000', 'Bogotá', 1, 'admin', 0, NULL, NULL);
@@ -545,7 +569,7 @@ export const dbQuery = {
     const db = getDB();
     const id = product.id || `p_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
     const stmt = db.prepare(
-      "INSERT INTO products (id, sku, name, description, price, category, image, specifications, isFeatured, isActive, images) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+      "INSERT INTO products (id, sku, name, description, price, category, image, specifications, isFeatured, isActive, images, brand) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
     );
     stmt.run([
       id,
@@ -558,7 +582,8 @@ export const dbQuery = {
       JSON.stringify(product.specifications),
       product.isFeatured ? 1 : 0,
       product.isActive !== false ? 1 : 0,
-      JSON.stringify(product.images || [])
+      JSON.stringify(product.images || []),
+      product.brand || null
     ]);
     stmt.free();
     await saveDB();
@@ -567,7 +592,7 @@ export const dbQuery = {
   updateProduct: async (product: Product): Promise<void> => {
     await delay(SIMULATED_LATENCY);
     const db = getDB();
-    const stmt = db.prepare("UPDATE products SET sku = ?, name = ?, description = ?, price = ?, category = ?, image = ?, specifications = ?, isFeatured = ?, isActive = ?, images = ? WHERE id = ?");
+    const stmt = db.prepare("UPDATE products SET sku = ?, name = ?, description = ?, price = ?, category = ?, image = ?, specifications = ?, isFeatured = ?, isActive = ?, images = ?, brand = ? WHERE id = ?");
     stmt.run([
       product.sku,
       product.name,
@@ -579,6 +604,7 @@ export const dbQuery = {
       product.isFeatured ? 1 : 0,
       product.isActive !== false ? 1 : 0,
       JSON.stringify(product.images || []),
+      product.brand || null,
       product.id
     ]);
     stmt.free();
@@ -589,7 +615,7 @@ export const dbQuery = {
     await delay(SIMULATED_LATENCY);
     const db = getDB();
     const stmt = db.prepare(
-      "INSERT OR REPLACE INTO products (id, sku, name, description, price, category, image, specifications, isFeatured, isActive, images) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+      "INSERT OR REPLACE INTO products (id, sku, name, description, price, category, image, specifications, isFeatured, isActive, images, brand) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
     );
     
     db.exec("BEGIN TRANSACTION");
@@ -606,7 +632,8 @@ export const dbQuery = {
               JSON.stringify(p.specifications),
               p.isFeatured ? 1 : 0,
               p.isActive !== false ? 1 : 0,
-              JSON.stringify(p.images || [])
+              JSON.stringify(p.images || []),
+              p.brand || null
             ]);
         }
         db.exec("COMMIT");
@@ -751,7 +778,8 @@ export const dbQuery = {
         specifications: JSON.parse(row[7]),
         isFeatured: row[8] === 1,
         isActive: row[9] === 1,
-        images: row[10] ? JSON.parse(row[10]) : []
+        images: row[10] ? JSON.parse(row[10]) : [],
+        brand: row[11] || undefined
       };
     }
     stmt.free();

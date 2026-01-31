@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS public.products (
   "isFeatured" BOOLEAN DEFAULT false,
   "isActive" BOOLEAN DEFAULT true,
   images JSONB DEFAULT '[]'::jsonb,
+  brand TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
 

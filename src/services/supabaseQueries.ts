@@ -27,7 +27,8 @@ export const supabaseQueries = {
       specifications: row.specifications || {},
       isFeatured: row.isFeatured,
       isActive: row.isActive,
-      images: row.images || []
+      images: row.images || [],
+      brand: row.brand
     }));
   },
 
@@ -51,7 +52,8 @@ export const supabaseQueries = {
       specifications: data.specifications || {},
       isFeatured: data.isFeatured,
       isActive: data.isActive,
-      images: data.images || []
+      images: data.images || [],
+      brand: data.brand
     };
   },
 
@@ -68,7 +70,8 @@ export const supabaseQueries = {
       specifications: product.specifications,
       isFeatured: product.isFeatured,
       isActive: product.isActive ?? true,
-      images: product.images
+      images: product.images,
+      brand: product.brand
     });
     
     if (error) handleError(error);
@@ -87,7 +90,8 @@ export const supabaseQueries = {
         specifications: product.specifications,
         isFeatured: product.isFeatured,
         isActive: product.isActive,
-        images: product.images
+        images: product.images,
+        brand: product.brand
       })
       .eq('id', product.id);
     
@@ -120,7 +124,8 @@ export const supabaseQueries = {
         specifications: p.specifications,
         isFeatured: p.isFeatured,
         isActive: p.isActive,
-        images: p.images
+        images: p.images,
+        brand: p.brand
       }))
     );
     if (error) handleError(error);
