@@ -265,18 +265,18 @@ const CartPage: React.FC = () => {
                 )}
               </div>
               
-              <div className="flex-1 flex flex-col justify-between py-1">
+              <div className="flex-1 flex flex-col justify-between py-1 min-w-0">
                 <div className="flex justify-between items-start gap-2">
-                  <h3 className="font-semibold text-slate-900 dark:text-white line-clamp-2 text-sm">{item.name}</h3>
+                  <h3 className="font-semibold text-slate-900 dark:text-white line-clamp-2 text-sm pr-2">{item.name}</h3>
                   <button 
                     onClick={() => removeFromCart(item.id)}
-                    className="text-slate-400 hover:text-red-500 transition-colors -mr-2 -mt-2 p-2"
+                    className="text-slate-400 hover:text-red-500 transition-colors p-1.5 flex-shrink-0"
                   >
                     <span className="material-symbols-outlined text-xl">delete</span>
                   </button>
                 </div>
                 
-                <div className="flex justify-between items-end mt-2">
+                <div className="flex justify-between items-end mt-2 flex-wrap gap-2">
                   <div className="flex flex-col">
                     <p className="font-bold text-lg text-slate-900 dark:text-white">
                       {format(item.price)}
@@ -286,7 +286,7 @@ const CartPage: React.FC = () => {
                     </p>
                   </div>
                   
-                  <div className="flex items-center gap-3 bg-slate-50 dark:bg-zinc-800 rounded-lg p-1">
+                  <div className="flex items-center gap-3 bg-slate-50 dark:bg-zinc-800 rounded-lg p-1 shrink-0">
                     <button 
                       onClick={() => handleQuantityUpdate(item.id, item.quantity - 1)}
                       className="w-7 h-7 flex items-center justify-center rounded-md bg-white dark:bg-zinc-700 shadow-sm text-slate-600 dark:text-slate-300 hover:text-primary active:scale-95 transition-all"

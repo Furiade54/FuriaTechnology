@@ -85,9 +85,17 @@ const AdminDashboardPage: React.FC = () => {
   
   const [manualResetUserId, setManualResetUserId] = useState<string | null>(null);
   const [tempPassword, setTempPassword] = useState('');
+  
+  const [orderToDelete, setOrderToDelete] = useState<string | null>(null);
 
   const [tempSpecs, setTempSpecs] = useState<{key: string, value: string}[]>([]);
   const [orderNotesDraft, setOrderNotesDraft] = useState<Record<string, string>>({});
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
 
   const [isAddingProduct, setIsAddingProduct] = useState(false);
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
@@ -311,6 +319,22 @@ const AdminDashboardPage: React.FC = () => {
       refreshData();
     } catch (error) {
       console.error("Error updating order status:", error);
+    }
+  };
+
+  const handleDeleteOrder = (orderId: string) => {
+    setOrderToDelete(orderId);
+  };
+
+  const confirmDeleteOrder = async () => {
+    if (!orderToDelete) return;
+    try {
+      await queries.deleteOrder(orderToDelete);
+      refreshData();
+      setOrderToDelete(null);
+    } catch (error) {
+      console.error("Error deleting order:", error);
+      alert('Error al eliminar el pedido');
     }
   };
 
@@ -1410,43 +1434,54 @@ const AdminDashboardPage: React.FC = () => {
                                     <p className="text-xs text-slate-500 mt-0.5">Correo: {userMap.get(order.userId)?.email || '—'}</p>
                                     <p className="text-xs text-slate-500 mt-0.5">Teléfono: {userMap.get(order.userId)?.phone || '—'}</p>
                                 </div>
-                                <span className="font-bold text-slate-900 dark:text-white">
-                                    ${order.total.toLocaleString()}
-                                </span>
+                                <div className="flex items-center gap-3">
+                                    <span className="font-bold text-slate-900 dark:text-white">
+                                        ${order.total.toLocaleString()}
+                                    </span>
+                                    <button 
+                                        onClick={() => handleDeleteOrder(order.id)}
+                                        className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                        title="Eliminar pedido"
+                                    >
+                                        <span className="material-symbols-outlined text-xl">delete</span>
+                                    </button>
+                                </div>
                             </div>
 
                             {/* Order Items */}
                             {order.items && order.items.length > 0 && (
-                                <div className="mt-3 space-y-2 border-t border-slate-100 dark:border-zinc-800 pt-3">
-                                    <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">Productos:</p>
-                                    {order.items.map((item, index) => (
-                                        <div key={index} className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded bg-slate-100 dark:bg-zinc-800 flex-shrink-0 overflow-hidden flex items-center justify-center">
-                                                {item.productImage ? (
-                                                    <img src={item.productImage} alt={item.productName} className="w-full h-full object-cover" />
-                                                ) : (
-                                                    <span className="material-symbols-outlined text-slate-400 text-lg">image</span>
-                                                )}
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-xs font-medium text-slate-900 dark:text-white truncate">{item.productName || 'Producto desconocido'}</p>
-                                                <p className="text-[10px] text-slate-500">
-                                                    {item.quantity} x {formatCurrency(item.price, currencyLocale, currencyCode)}
+                                <div className="mt-3 border-t border-slate-100 dark:border-zinc-800 pt-3">
+                                    <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">Productos ({order.items.length}):</p>
+                                    <div className="space-y-2 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
+                                        {order.items.map((item, index) => (
+                                            <div key={index} className="flex items-center gap-3">
+                                                <div className="w-10 h-10 rounded bg-slate-100 dark:bg-zinc-800 flex-shrink-0 overflow-hidden flex items-center justify-center">
+                                                    {item.productImage ? (
+                                                        <img src={item.productImage} alt={item.productName} className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <span className="material-symbols-outlined text-slate-400 text-lg">image</span>
+                                                    )}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-xs font-medium text-slate-900 dark:text-white truncate">{item.productName || 'Producto desconocido'}</p>
+                                                    <p className="text-[10px] text-slate-500">
+                                                        {item.quantity} x {formatCurrency(item.price, currencyLocale, currencyCode)}
+                                                    </p>
+                                                </div>
+                                                <p className="font-medium text-slate-900 dark:text-white">
+                                                    {formatCurrency(item.quantity * item.price, currencyLocale, currencyCode)}
                                                 </p>
                                             </div>
-                                            <p className="font-medium text-slate-900 dark:text-white">
-                                                {formatCurrency(item.quantity * item.price, currencyLocale, currencyCode)}
-                                            </p>
-                                        </div>
-                                    ))}
+                                        ))}
+                                    </div>
                                 </div>
                             )}
 
-                            <div className="flex gap-2 mt-4 pt-4 border-t border-slate-100 dark:border-zinc-800">
+                            <div className="flex flex-col gap-3 mt-4 pt-4 border-t border-slate-100 dark:border-zinc-800">
                                 <select 
                                     value={order.status}
                                     onChange={(e) => handleOrderStatusChange(order.id, e.target.value as Order['status'])}
-                                    className="flex-1 bg-slate-50 dark:bg-zinc-800 border-none rounded-lg text-xs py-2 px-3 text-slate-700 dark:text-slate-300 focus:ring-2 focus:ring-indigo-500"
+                                    className="w-full bg-slate-50 dark:bg-zinc-800 border-none rounded-lg text-xs py-2 px-3 text-slate-700 dark:text-slate-300 focus:ring-2 focus:ring-indigo-500"
                                 >
                                     <option value="pending">Pendiente</option>
                                     <option value="received">Recibido</option>
@@ -1458,7 +1493,7 @@ const AdminDashboardPage: React.FC = () => {
                                     <option value="cancelled">Cancelado</option>
                                     <option value="issue">Con incidencia</option>
                                 </select>
-                                <div className="flex-1 flex items-center gap-2">
+                                <div className="w-full flex items-center gap-2">
                                   <input
                                     value={orderNotesDraft[order.id] ?? (order.notes ?? '')}
                                     onChange={(e) => setOrderNotesDraft({ ...orderNotesDraft, [order.id]: e.target.value })}
@@ -1476,11 +1511,10 @@ const AdminDashboardPage: React.FC = () => {
                                           delete next[order.id];
                                           return next;
                                         });
-                                        // Optional: Feedback to admin
-                                        // alert("Nota guardada correctamente"); 
+                                        showToast("Nota guardada correctamente");
                                       } catch (error) {
                                         console.error("Error updating order notes:", error);
-                                        alert("Error al guardar la nota");
+                                        showToast("Error al guardar la nota", "error");
                                       }
                                     }}
                                     className="flex-none px-3 py-2 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition-colors"
@@ -1878,6 +1912,29 @@ const AdminDashboardPage: React.FC = () => {
         confirmText="Solicitar"
         icon="lock_reset"
     />
+
+    <ConfirmationModal
+        isOpen={!!orderToDelete}
+        onClose={() => setOrderToDelete(null)}
+        onConfirm={confirmDeleteOrder}
+        title="Eliminar Pedido"
+        message="¿Estás seguro de que deseas eliminar este pedido? Esta acción no se puede deshacer y eliminará todos los datos asociados."
+        confirmText="Eliminar"
+        variant="danger"
+        icon="delete"
+    />
+
+    {/* Toast Notification */}
+    {toast && (
+        <div className={`fixed bottom-4 right-4 px-4 py-2 rounded-lg shadow-lg text-white text-sm font-medium transition-opacity duration-300 z-50 flex items-center gap-2 ${
+            toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'
+        }`}>
+            <span className="material-symbols-outlined text-lg">
+                {toast.type === 'success' ? 'check_circle' : 'error'}
+            </span>
+            {toast.message}
+        </div>
+    )}
     </>
   );
 };
