@@ -18,6 +18,8 @@ const ProductListPage: React.FC = () => {
   const [sortBy, setSortBy] = React.useState<'default' | 'price-asc' | 'price-desc'>('default');
   const [isSearchVisible, setIsSearchVisible] = React.useState(!!initialSearchQuery);
   const [searchQuery, setSearchQuery] = React.useState(initialSearchQuery);
+  const [minPrice, setMinPrice] = useState<string>('');
+  const [maxPrice, setMaxPrice] = useState<string>('');
   const filterMenuRef = React.useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -69,6 +71,13 @@ const ProductListPage: React.FC = () => {
       result = result.filter(p => p.brand === brandFilter);
     }
 
+    if (minPrice) {
+      result = result.filter(p => p.price >= Number(minPrice));
+    }
+    if (maxPrice) {
+      result = result.filter(p => p.price <= Number(maxPrice));
+    }
+
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       result = result.filter(p => 
@@ -85,7 +94,7 @@ const ProductListPage: React.FC = () => {
     }
     
     return result;
-  }, [categoryFilter, sortBy, products, searchQuery]);
+  }, [categoryFilter, brandFilter, sortBy, products, searchQuery, minPrice, maxPrice]);
 
   return (
     <div className="flex flex-col min-h-screen bg-background-light dark:bg-background-dark font-sans pb-24">
@@ -140,7 +149,7 @@ const ProductListPage: React.FC = () => {
             </button>
             
             {isFilterOpen && (
-              <div className="absolute top-12 right-0 w-48 bg-white dark:bg-zinc-800 rounded-lg shadow-xl border border-slate-100 dark:border-zinc-700 overflow-hidden z-20">
+              <div className="absolute top-12 right-0 w-64 bg-white dark:bg-zinc-800 rounded-lg shadow-xl border border-slate-100 dark:border-zinc-700 overflow-hidden z-20">
                 <div className="p-2">
                   <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 px-3 py-2 uppercase tracking-wider">Ordenar Por</p>
                   <button 
@@ -161,6 +170,32 @@ const ProductListPage: React.FC = () => {
                   >
                     Precio: Mayor a Menor
                   </button>
+
+                  <div className="border-t border-slate-100 dark:border-zinc-700 my-2"></div>
+                  <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 px-3 py-2 uppercase tracking-wider">Precio</p>
+                  <div className="px-3 pb-2 flex gap-2 items-center">
+                    <div className="relative w-full">
+                      <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-slate-400">$</span>
+                      <input
+                        type="number"
+                        placeholder="Min"
+                        value={minPrice}
+                        onChange={(e) => setMinPrice(e.target.value)}
+                        className="w-full pl-5 pr-2 py-1.5 text-sm border rounded-md bg-slate-50 dark:bg-zinc-900 border-slate-200 dark:border-zinc-700 focus:ring-1 focus:ring-primary outline-none"
+                      />
+                    </div>
+                    <span className="text-slate-400">-</span>
+                    <div className="relative w-full">
+                      <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-slate-400">$</span>
+                      <input
+                        type="number"
+                        placeholder="Max"
+                        value={maxPrice}
+                        onChange={(e) => setMaxPrice(e.target.value)}
+                        className="w-full pl-5 pr-2 py-1.5 text-sm border rounded-md bg-slate-50 dark:bg-zinc-900 border-slate-200 dark:border-zinc-700 focus:ring-1 focus:ring-primary outline-none"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
