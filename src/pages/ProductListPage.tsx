@@ -172,7 +172,17 @@ const ProductListPage: React.FC = () => {
                   </button>
 
                   <div className="border-t border-slate-100 dark:border-zinc-700 my-2"></div>
-                  <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 px-3 py-2 uppercase tracking-wider">Precio</p>
+                  <div className="flex justify-between items-center px-3 py-2">
+                    <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Precio</p>
+                    {(minPrice || maxPrice) && (
+                      <button 
+                        onClick={() => { setMinPrice(''); setMaxPrice(''); }}
+                        className="text-xs text-primary hover:text-primary-dark font-medium transition-colors"
+                      >
+                        Limpiar
+                      </button>
+                    )}
+                  </div>
                   <div className="px-3 pb-2 flex gap-2 items-center">
                     <div className="relative w-full">
                       <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-slate-400">$</span>
@@ -181,6 +191,7 @@ const ProductListPage: React.FC = () => {
                         placeholder="Min"
                         value={minPrice}
                         onChange={(e) => setMinPrice(e.target.value)}
+                        onKeyDown={(e) => ['e', 'E', '+', '-'].includes(e.key) && e.preventDefault()}
                         className="w-full pl-5 pr-2 py-1.5 text-sm border rounded-md bg-slate-50 dark:bg-zinc-900 border-slate-200 dark:border-zinc-700 focus:ring-1 focus:ring-primary outline-none"
                       />
                     </div>
@@ -192,6 +203,7 @@ const ProductListPage: React.FC = () => {
                         placeholder="Max"
                         value={maxPrice}
                         onChange={(e) => setMaxPrice(e.target.value)}
+                        onKeyDown={(e) => ['e', 'E', '+', '-'].includes(e.key) && e.preventDefault()}
                         className="w-full pl-5 pr-2 py-1.5 text-sm border rounded-md bg-slate-50 dark:bg-zinc-900 border-slate-200 dark:border-zinc-700 focus:ring-1 focus:ring-primary outline-none"
                       />
                     </div>
