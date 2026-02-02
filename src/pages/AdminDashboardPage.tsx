@@ -18,11 +18,18 @@ const AVAILABLE_ICONS = [
   {
     label: 'Tecnología',
     options: [
-      { value: 'smartphone', label: 'Celulares' },
-      { value: 'laptop', label: 'Computadoras' },
+      { value: 'smartphone', label: 'Dispositivos móviles' },
+      { value: 'computer', label: 'Computación' },
+      { value: 'print', label: 'Impresión y digitalización' },
+      { value: 'router', label: 'Redes y conectividad' },
+      { value: 'keyboard', label: 'Periféricos' },
+      { value: 'hard_drive', label: 'Almacenamiento' },
+      { value: 'monitor', label: 'Pantallas' },
       { value: 'headphones', label: 'Audio' },
-      { value: 'watch', label: 'Relojes' },
-      { value: 'videogame_asset', label: 'Videojuegos' },
+      { value: 'developer_board', label: 'Componentes electrónicos' },
+      { value: 'memory', label: 'Procesamiento y memoria' },
+      { value: 'battery_charging_full', label: 'Energía y carga' },
+      { value: 'backpack', label: 'Accesorios y transporte' },
     ]
   },
   {
