@@ -8,34 +8,69 @@ import type { User, Order, Product, Category, Banner, PaymentMethod } from '../t
 import { formatCurrency } from '../utils/currency';
 
 const AVAILABLE_ICONS = [
-  { value: 'category', label: 'General' },
-  { value: 'smartphone', label: 'Celulares' },
-  { value: 'laptop', label: 'Computadoras' },
-  { value: 'headphones', label: 'Audio' },
-  { value: 'watch', label: 'Relojes' },
-  { value: 'checkroom', label: 'Ropa' },
-  { value: 'styler', label: 'Moda' },
-  { value: 'home', label: 'Hogar' },
-  { value: 'chair', label: 'Muebles' },
-  { value: 'kitchen', label: 'Cocina' },
-  { value: 'fitness_center', label: 'Deportes' },
-  { value: 'sports_soccer', label: 'Fútbol' },
-  { value: 'directions_bike', label: 'Ciclismo' },
-  { value: 'face', label: 'Belleza' },
-  { value: 'spa', label: 'Cuidado Personal' },
-  { value: 'videogame_asset', label: 'Videojuegos' },
-  { value: 'toys', label: 'Juguetes' },
-  { value: 'pets', label: 'Mascotas' },
-  { value: 'local_offer', label: 'Ofertas' },
-  { value: 'restaurant', label: 'Restaurante' },
-  { value: 'local_cafe', label: 'Café' },
-  { value: 'fastfood', label: 'Comida Rápida' },
-  { value: 'menu_book', label: 'Libros' },
-  { value: 'auto_stories', label: 'Educación' },
-  { value: 'school', label: 'Escuela' },
-  { value: 'work', label: 'Trabajo' },
-  { value: 'flight', label: 'Viajes' },
-  { value: 'local_shipping', label: 'Envíos' },
+  {
+    label: 'General',
+    options: [
+      { value: 'category', label: 'General' },
+      { value: 'local_offer', label: 'Ofertas' },
+    ]
+  },
+  {
+    label: 'Tecnología',
+    options: [
+      { value: 'smartphone', label: 'Celulares' },
+      { value: 'laptop', label: 'Computadoras' },
+      { value: 'headphones', label: 'Audio' },
+      { value: 'watch', label: 'Relojes' },
+      { value: 'videogame_asset', label: 'Videojuegos' },
+    ]
+  },
+  {
+    label: 'Moda y Belleza',
+    options: [
+      { value: 'checkroom', label: 'Ropa' },
+      { value: 'styler', label: 'Moda' },
+      { value: 'face', label: 'Belleza' },
+      { value: 'spa', label: 'Cuidado Personal' },
+    ]
+  },
+  {
+    label: 'Hogar y Muebles',
+    options: [
+      { value: 'home', label: 'Hogar' },
+      { value: 'chair', label: 'Muebles' },
+      { value: 'kitchen', label: 'Cocina' },
+    ]
+  },
+  {
+    label: 'Deportes y Ocio',
+    options: [
+      { value: 'fitness_center', label: 'Deportes' },
+      { value: 'sports_soccer', label: 'Fútbol' },
+      { value: 'directions_bike', label: 'Ciclismo' },
+      { value: 'toys', label: 'Juguetes' },
+      { value: 'pets', label: 'Mascotas' },
+      { value: 'flight', label: 'Viajes' },
+    ]
+  },
+  {
+    label: 'Alimentos y Bebidas',
+    options: [
+      { value: 'restaurant', label: 'Restaurante' },
+      { value: 'local_cafe', label: 'Café' },
+      { value: 'fastfood', label: 'Comida Rápida' },
+    ]
+  },
+  {
+    label: 'Educación y Trabajo',
+    options: [
+      { value: 'menu_book', label: 'Libros' },
+      { value: 'auto_stories', label: 'Educación' },
+      { value: 'school', label: 'Escuela' },
+      { value: 'work', label: 'Trabajo' },
+      { value: 'local_shipping', label: 'Envíos' },
+    ]
+  }
 ];
 
 const AdminDashboardPage: React.FC = () => {
@@ -1082,10 +1117,14 @@ const AdminDashboardPage: React.FC = () => {
                               value={categoryForm.icon || 'category'} 
                               onChange={(e) => setCategoryForm({ ...categoryForm, icon: e.target.value })}
                             >
-                              {AVAILABLE_ICONS.map(icon => (
-                                <option key={icon.value} value={icon.value}>
-                                  {icon.label}
-                                </option>
+                              {AVAILABLE_ICONS.map(group => (
+                                <optgroup key={group.label} label={group.label}>
+                                  {group.options.map(icon => (
+                                    <option key={icon.value} value={icon.value}>
+                                      {icon.label}
+                                    </option>
+                                  ))}
+                                </optgroup>
                               ))}
                             </select>
                             <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-500">
