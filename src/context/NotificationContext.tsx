@@ -7,6 +7,7 @@ interface NotificationContextType {
   notificationsEnabled: boolean;
   setNotificationsEnabled: (enabled: boolean) => void;
   unreadCount: number;
+  activeOrdersCount: number;
   clearUnreadCount: () => void;
   requestPermission: () => Promise<boolean>;
 }
@@ -18,21 +19,30 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
     return localStorage.getItem('notifications') === 'true';
   });
   const [unreadCount, setUnreadCount] = useState<number>(0);
+  const [activeOrdersCount, setActiveOrdersCount] = useState<number>(0);
   const { queries } = useDatabase();
   const [user, setUser] = useState<User | null>(null);
 
   // Fetch user on mount and listen for storage changes (login/logout across tabs)
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchUserAndOrders = async () => {
       try {
         const currentUser = await queries.getCurrentUser();
         setUser(currentUser);
+        
+        if (currentUser) {
+            const orders = await queries.getOrdersByUser(currentUser.id);
+            const active = orders.filter(o => o.status === 'pending').length;
+            setActiveOrdersCount(active);
+        } else {
+            setActiveOrdersCount(0);
+        }
       } catch (error) {
-        console.error("Failed to fetch user for notifications", error);
+        console.error("Failed to fetch user/orders for notifications", error);
       }
     };
 
-    fetchUser();
+    fetchUserAndOrders();
 
     // Optional: Listen for custom events if you emit them on login
     // window.addEventListener('auth-change', fetchUser);
@@ -104,6 +114,14 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
             setUnreadCount((prev) => prev + 1);
             notificationSent = true;
             
+            // Refresh active orders count
+            if (user) {
+                queries.getOrdersByUser(user.id).then(orders => {
+                    const active = orders.filter(o => o.status === 'pending').length;
+                    setActiveOrdersCount(active);
+                });
+            }
+
             if (Notification.permission === 'granted') {
                const statusMap: Record<string, string> = {
                    pending: 'Pendiente',
@@ -159,6 +177,7 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
       notificationsEnabled, 
       setNotificationsEnabled, 
       unreadCount, 
+      activeOrdersCount,
       clearUnreadCount,
       requestPermission
     }}>

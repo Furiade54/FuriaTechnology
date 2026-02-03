@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
 import { useDatabase } from '../context/DatabaseContext';
 import { useNotification } from '../context/NotificationContext';
+import { useWishlist } from '../context/WishlistContext';
 import { useStoreSettings } from '../context/StoreSettingsContext';
 import { Link, useNavigate } from 'react-router-dom';
 import type { User } from '../types';
@@ -17,10 +18,15 @@ const Header: React.FC<HeaderProps> = ({
 }) => {
   const { totalItems } = useCart();
   const { queries } = useDatabase();
-  const { unreadCount, clearUnreadCount } = useNotification();
+  const { unreadCount, activeOrdersCount, clearUnreadCount } = useNotification();
+  const { wishlistCount } = useWishlist();
   const { getSetting } = useStoreSettings();
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
+
+  // Total count for the bell notification badge
+  // Sums up: Active Orders (pending) + Wishlist Items + Unread System Notifications
+  const badgeCount = (activeOrdersCount || 0) + (wishlistCount || 0) + (unreadCount || 0);
   
   const logoUrl = getSetting('logo_url');
   const storeName = getSetting('store_name') || 'Mi Tienda';
@@ -67,9 +73,9 @@ const Header: React.FC<HeaderProps> = ({
             aria-label="Notificaciones"
           >
             <span className="material-symbols-outlined text-[24px]">notifications</span>
-            {unreadCount > 0 && (
+            {badgeCount > 0 && (
               <span className="absolute top-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] text-white border-2 border-white dark:border-zinc-900">
-                {unreadCount}
+                {badgeCount}
               </span>
             )}
           </button>
