@@ -655,13 +655,39 @@ export const dbQuery = {
     await saveDB();
   },
 
-  deleteProduct: async (id: string): Promise<void> => {
+  deleteProduct: async (id: string): Promise<'deleted' | 'archived'> => {
     await delay(SIMULATED_LATENCY);
     const db = getDB();
-    const stmt = db.prepare("DELETE FROM products WHERE id = ?");
-    stmt.run([id]);
-    stmt.free();
-    await saveDB();
+
+    // 1. Delete from wishlist (Cleanup unnecessary data)
+    const delWishlist = db.prepare("DELETE FROM wishlist WHERE productId = ?");
+    delWishlist.run([id]);
+    delWishlist.free();
+
+    // 2. Check for orders (Preserve history)
+    const checkOrders = db.prepare("SELECT count(*) FROM order_items WHERE productId = ?");
+    checkOrders.bind([id]);
+    let hasOrders = false;
+    if (checkOrders.step()) {
+      hasOrders = (checkOrders.get()[0] as number) > 0;
+    }
+    checkOrders.free();
+
+    if (hasOrders) {
+      // Soft Delete: Mark as inactive to preserve order history
+      const softDelete = db.prepare("UPDATE products SET isActive = 0 WHERE id = ?");
+      softDelete.run([id]);
+      softDelete.free();
+      await saveDB();
+      return 'archived';
+    } else {
+      // Hard Delete: Safe to remove completely
+      const hardDelete = db.prepare("DELETE FROM products WHERE id = ?");
+      hardDelete.run([id]);
+      hardDelete.free();
+      await saveDB();
+      return 'deleted';
+    }
   },
 
   createUserAdmin: async (payload: {

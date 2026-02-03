@@ -134,6 +134,32 @@ const AdminDashboardPage: React.FC = () => {
   const [orderNotesDraft, setOrderNotesDraft] = useState<Record<string, string>>({});
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
+  // Product Filters
+  const [selectedCategory, setSelectedCategory] = useState<string>('Todas');
+  const [selectedBrand, setSelectedBrand] = useState<string>('Todas');
+
+  // Reset selectedBrand when selectedCategory changes
+  useEffect(() => {
+    setSelectedBrand('Todas');
+  }, [selectedCategory]);
+
+  const brands = React.useMemo(() => {
+    const productsInScope = selectedCategory === 'Todas' 
+        ? products 
+        : products.filter(p => p.category === selectedCategory);
+    
+    const b = new Set(productsInScope.map(p => p.brand).filter((b): b is string => !!b));
+    return Array.from(b).sort();
+  }, [products, selectedCategory]);
+
+  const filteredProducts = React.useMemo(() => {
+    return products.filter(p => {
+      const matchCategory = selectedCategory === 'Todas' || p.category === selectedCategory;
+      const matchBrand = selectedBrand === 'Todas' || p.brand === selectedBrand;
+      return matchCategory && matchBrand;
+    });
+  }, [products, selectedCategory, selectedBrand]);
+
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
@@ -452,10 +478,17 @@ const AdminDashboardPage: React.FC = () => {
   const handleDeleteProduct = async (productId: string) => {
     if (!confirm("¿Eliminar este producto?")) return;
     try {
-      await queries.deleteProduct(productId);
+      // @ts-ignore - Return type might be inferred incorrectly due to Proxy
+      const result = await queries.deleteProduct(productId);
       refreshData();
+      if (result === 'archived') {
+        showToast('Producto archivado (tiene pedidos asociados)', 'success');
+      } else {
+        showToast('Producto eliminado correctamente', 'success');
+      }
     } catch (error) {
       console.error("Error deleting product:", error);
+      showToast('Error al eliminar el producto', 'error');
     }
   };
 
@@ -463,20 +496,30 @@ const AdminDashboardPage: React.FC = () => {
       const values: string[] = [];
       let current = '';
       let inQuotes = false;
+      
       for (let i = 0; i < line.length; i++) {
           const char = line[i];
-          if (char === '"') {
-              if (i + 1 < line.length && line[i + 1] === '"') {
-                  current += '"';
-                  i++;
+          
+          if (inQuotes) {
+              if (char === '"') {
+                  if (i + 1 < line.length && line[i + 1] === '"') {
+                      current += '"';
+                      i++;
+                  } else {
+                      inQuotes = false;
+                  }
               } else {
-                  inQuotes = !inQuotes;
+                  current += char;
               }
-          } else if (char === ',' && !inQuotes) {
-              values.push(current);
-              current = '';
           } else {
-              current += char;
+              if (char === '"') {
+                  inQuotes = true;
+              } else if (char === ',') {
+                  values.push(current);
+                  current = '';
+              } else {
+                  current += char;
+              }
           }
       }
       values.push(current);
@@ -484,7 +527,7 @@ const AdminDashboardPage: React.FC = () => {
   };
 
   const repairMalformedJSON = (str: string): string => {
-    return str.replace(/"/g, (match, offset, string) => {
+    return str.replace(/"/g, (_match, offset, string) => {
       const nextChar = string.slice(offset + 1).trim()[0];
       const prevChar = string.slice(0, offset).trim().slice(-1);
       
@@ -1791,8 +1834,67 @@ const AdminDashboardPage: React.FC = () => {
                       </div>
                   </Modal>
 
+                  {/* Filters */}
+                  <div className="space-y-3">
+                    {/* Categories */}
+                    <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+                        <button
+                            onClick={() => setSelectedCategory('Todas')}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+                                selectedCategory === 'Todas'
+                                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200 dark:shadow-none'
+                                : 'bg-white dark:bg-zinc-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-zinc-800 hover:bg-slate-50 dark:hover:bg-zinc-800'
+                            }`}
+                        >
+                            <span className="material-symbols-outlined text-[18px]">grid_view</span>
+                            Todas
+                        </button>
+                        {categories.map(cat => (
+                            <button
+                                key={cat.id}
+                                onClick={() => setSelectedCategory(cat.name)}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+                                    selectedCategory === cat.name
+                                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200 dark:shadow-none'
+                                    : 'bg-white dark:bg-zinc-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-zinc-800 hover:bg-slate-50 dark:hover:bg-zinc-800'
+                                }`}
+                            >
+                                <span className="material-symbols-outlined text-[18px]">{cat.icon || 'category'}</span>
+                                {cat.name}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Brands */}
+                    <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+                        <button
+                            onClick={() => setSelectedBrand('Todas')}
+                            className={`px-4 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
+                                selectedBrand === 'Todas'
+                                ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900'
+                                : 'bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-zinc-700'
+                            }`}
+                        >
+                            Todas
+                        </button>
+                        {brands.map(brand => (
+                            <button
+                                key={brand}
+                                onClick={() => setSelectedBrand(brand)}
+                                className={`px-4 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
+                                    selectedBrand === brand
+                                    ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900'
+                                    : 'bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-zinc-700'
+                                }`}
+                            >
+                                {brand}
+                            </button>
+                        ))}
+                    </div>
+                  </div>
+
                   <div className="grid grid-cols-2 gap-3">
-                    {products.map(product => (
+                    {filteredProducts.map(product => (
                         <div key={product.id} className={`bg-white dark:bg-zinc-900 p-3 rounded-xl border shadow-sm flex flex-col gap-2 ${
                             editingProductId === product.id ? 'border-indigo-500 ring-1 ring-indigo-500' : 'border-slate-200 dark:border-zinc-800'
                         } ${product.isActive === false ? 'opacity-60' : ''}`}>

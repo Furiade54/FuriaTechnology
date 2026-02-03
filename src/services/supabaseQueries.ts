@@ -106,9 +106,32 @@ export const supabaseQueries = {
     if (error) handleError(error);
   },
 
-  deleteProduct: async (id: string): Promise<void> => {
-    const { error } = await supabase.from('products').delete().eq('id', id);
-    if (error) handleError(error);
+  deleteProduct: async (id: string): Promise<'deleted' | 'archived'> => {
+    // 1. Delete from wishlist (Cleanup)
+    await supabase.from('wishlist').delete().eq('productId', id);
+
+    // 2. Check for orders (Preserve history)
+    const { count, error: countError } = await supabase
+      .from('order_items')
+      .select('*', { count: 'exact', head: true })
+      .eq('productId', id);
+    
+    if (countError) handleError(countError);
+
+    if (count && count > 0) {
+      // Soft Delete: Mark as inactive
+      const { error } = await supabase
+        .from('products')
+        .update({ isActive: false })
+        .eq('id', id);
+      if (error) handleError(error);
+      return 'archived';
+    } else {
+      // Hard Delete: Safe to remove
+      const { error } = await supabase.from('products').delete().eq('id', id);
+      if (error) handleError(error);
+      return 'deleted';
+    }
   },
 
   bulkUpsertProducts: async (products: Product[]): Promise<void> => {
