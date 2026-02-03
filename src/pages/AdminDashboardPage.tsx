@@ -483,6 +483,21 @@ const AdminDashboardPage: React.FC = () => {
       return values;
   };
 
+  const repairMalformedJSON = (str: string): string => {
+    return str.replace(/"/g, (match, offset, string) => {
+      const nextChar = string.slice(offset + 1).trim()[0];
+      const prevChar = string.slice(0, offset).trim().slice(-1);
+      
+      const isStructuralStart = ['{', ',', ':', '['].includes(prevChar);
+      const isStructuralEnd = [':', ',', '}', ']'].includes(nextChar);
+      
+      if (isStructuralStart || isStructuralEnd) {
+          return '"';
+      }
+      return '\\"';
+    });
+  };
+
   const processCSV = async (csvText: string) => {
     const lines = csvText.split(/\r?\n/);
     if (lines.length < 2) return; // Header + 1 row minimum
@@ -520,14 +535,33 @@ const AdminDashboardPage: React.FC = () => {
         let specifications = {};
         try {
             const specStr = getValue('specifications');
-            if (specStr) specifications = JSON.parse(specStr.replace(/""/g, '"'));
-        } catch (e) {}
+            if (specStr) {
+              try {
+                specifications = JSON.parse(specStr);
+              } catch (e) {
+                // Try to repair common CSV JSON issues (unescaped quotes inside values)
+                const repaired = repairMalformedJSON(specStr);
+                specifications = JSON.parse(repaired);
+              }
+            }
+        } catch (e) {
+            console.warn("Failed to parse specifications for row " + i, e);
+        }
 
         let images: string[] = [];
         try {
              const imgsStr = getValue('images');
-             if (imgsStr) images = JSON.parse(imgsStr.replace(/""/g, '"'));
-        } catch (e) {}
+             if (imgsStr) {
+                try {
+                  images = JSON.parse(imgsStr);
+                } catch (e) {
+                   const repaired = repairMalformedJSON(imgsStr);
+                   images = JSON.parse(repaired);
+                }
+             }
+        } catch (e) {
+            console.warn("Failed to parse images for row " + i, e);
+        }
 
         const isFeatured = getValue('isfeatured') === 'true';
         const isActive = getValue('isactive') !== 'false';
