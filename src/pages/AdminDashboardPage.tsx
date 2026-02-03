@@ -528,8 +528,8 @@ const AdminDashboardPage: React.FC = () => {
 
   const repairMalformedJSON = (str: string): string => {
     return str.replace(/"/g, (_match, offset, string) => {
-      const nextChar = string.slice(offset + 1).trim()[0];
-      const prevChar = string.slice(0, offset).trim().slice(-1);
+      const nextChar = string.slice(offset + 1).trim()[0] || '';
+      const prevChar = string.slice(0, offset).trim().slice(-1) || '';
       
       const isStructuralStart = ['{', ',', ':', '['].includes(prevChar);
       const isStructuralEnd = [':', ',', '}', ']'].includes(nextChar);
@@ -542,7 +542,7 @@ const AdminDashboardPage: React.FC = () => {
   };
 
   const processCSV = async (csvText: string) => {
-    const lines = csvText.split(/\r?\n/);
+    const lines = csvText.split(/\r\n|\n|\r/);
     if (lines.length < 2) return; // Header + 1 row minimum
 
     const headers = parseCSVLine(lines[0]).map(h => h.trim().toLowerCase());
@@ -552,6 +552,7 @@ const AdminDashboardPage: React.FC = () => {
     const productsToUpsert: Product[] = [];
     let updatedCount = 0;
     let createdCount = 0;
+    const errors: string[] = [];
 
     for (let i = 1; i < lines.length; i++) {
         const line = lines[i].trim();
@@ -589,6 +590,7 @@ const AdminDashboardPage: React.FC = () => {
             }
         } catch (e) {
             console.warn("Failed to parse specifications for row " + i, e);
+            errors.push(`Fila ${i + 1} (${sku || name || 'Desconocido'}): Error en especificaciones`);
         }
 
         let images: string[] = [];
@@ -604,6 +606,7 @@ const AdminDashboardPage: React.FC = () => {
              }
         } catch (e) {
             console.warn("Failed to parse images for row " + i, e);
+            errors.push(`Fila ${i + 1} (${sku || name || 'Desconocido'}): Error en imágenes`);
         }
 
         const isFeatured = getValue('isfeatured') === 'true';
@@ -639,7 +642,13 @@ const AdminDashboardPage: React.FC = () => {
     try {
         if (productsToUpsert.length > 0) {
             await queries.bulkUpsertProducts(productsToUpsert);
-            alert(`Importación completada: ${productsToUpsert.length} productos procesados.`);
+            
+            let message = `Importación completada: ${productsToUpsert.length} productos procesados.`;
+            if (errors.length > 0) {
+                message += `\n\nAdvertencias:\n${errors.slice(0, 10).join('\n')}`;
+                if (errors.length > 10) message += `\n... y ${errors.length - 10} más.`;
+            }
+            alert(message);
             refreshData();
         }
     } catch (e) {
