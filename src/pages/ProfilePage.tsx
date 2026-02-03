@@ -248,12 +248,12 @@ Fecha: ${new Date(orderToReturn.createdAt).toLocaleDateString()}
               )}
             </div>
             <button 
-              className="absolute bottom-0 right-0 p-1.5 bg-transparent text-primary rounded-full hover:bg-black/10 transition-colors z-20"
+              className="absolute bottom-0 right-0 h-8 w-8 bg-white dark:bg-zinc-800 text-primary rounded-full shadow-md hover:shadow-lg border border-slate-200 dark:border-zinc-700 flex items-center justify-center transition-all z-20 hover:bg-slate-50 dark:hover:bg-zinc-700"
               onClick={() => fileInputRef.current?.click()}
               disabled={isUploadingAvatar}
               aria-label="Cambiar foto de perfil"
             >
-              <span className="material-symbols-outlined text-4xl">edit</span>
+              <span className="material-symbols-outlined text-[18px]">edit</span>
             </button>
             <input 
               type="file" 
