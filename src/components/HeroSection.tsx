@@ -9,6 +9,11 @@ const HeroSection: React.FC = () => {
   const [banners, setBanners] = useState<Banner[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+
+  // Minimum swipe distance (in px)
+  const minSwipeDistance = 50;
 
   useEffect(() => {
     if (isReady) {
@@ -42,7 +47,33 @@ const HeroSection: React.FC = () => {
     }, 5000);
 
     return () => window.clearInterval(interval);
-  }, [totalSlides]);
+  }, [totalSlides, activeIndex]); // Reset timer on slide change (including manual swipe)
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe) {
+      // Next slide
+      setActiveIndex((prev) => (prev + 1) % totalSlides);
+    }
+    if (isRightSwipe) {
+      // Previous slide
+      setActiveIndex((prev) => (prev - 1 + totalSlides) % totalSlides);
+    }
+  };
 
   if (loading) {
     return (
@@ -55,7 +86,12 @@ const HeroSection: React.FC = () => {
   if (banners.length === 0) return null;
 
   return (
-    <div className="relative px-4">
+    <div 
+      className="relative px-4"
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+    >
       <div className="relative overflow-hidden rounded-3xl h-44">
         {banners.map((banner, index) => (
           <Link
