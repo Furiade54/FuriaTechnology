@@ -96,7 +96,13 @@ const WishlistPage: React.FC = () => {
         {wishlistItems.length === 0 ? (
            <div className="flex flex-col items-center justify-center py-20 text-slate-500">
              <span className="material-symbols-outlined text-4xl mb-2">favorite_border</span>
-             <p>No tienes productos en favoritos.</p>
+             <p className="mb-6">No tienes productos en favoritos.</p>
+             <button
+               onClick={() => navigate('/products')}
+               className="px-6 py-2 bg-primary text-white rounded-lg font-medium shadow-sm hover:bg-primary/90 transition-colors"
+             >
+               Explorar productos
+             </button>
            </div>
         ) : (
             <div className="space-y-4">
